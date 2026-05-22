@@ -1,0 +1,395 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Components · scifyos">
+  <h1 class="text-3xl tracking-tight uppercase">
+    <span class="text-fg-subtle">&gt;</span> components
+  </h1>
+  <p class="mt-2 text-fg-muted text-sm max-w-2xl">
+    Reference for every UI primitive and composed component in the system. Copy a snippet to drop into your app, or open the
+    <a href="/playground" class="text-primary underline underline-offset-2">playground</a>
+    to see anything interactive running live.
+  </p>
+
+  <section class="mt-10 border border-primary/30 bg-bg-elevated p-4 space-y-2">
+    <h2 class="text-xs uppercase tracking-widest text-primary">// theme tokens</h2>
+    <p class="text-sm text-fg-muted max-w-2xl">
+      Every component below draws from CSS variables defined in
+      <span class="text-primary">src/styles/global.css</span>. Change a token once and the whole site reflows.
+      Browse the palette at <a href="/colors" class="text-primary underline underline-offset-2">/colors</a> and the scale at
+      <a href="/typography" class="text-primary underline underline-offset-2">/typography</a>.
+    </p>
+    <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`@theme {
+  --color-primary:    oklch(0.87 0.30 142);  /* fluo green */
+  --color-danger:     oklch(0.65 0.30 25);   /* fluo red */
+  --color-bg:         oklch(0.06 0 0);       /* near-black */
+  --color-bg-elevated: oklch(0.12 0.02 142);
+  --font-mono:        "JetBrains Mono", ui-monospace, monospace;
+  --radius-md:        0;                     /* sharp corners */
+  --shadow-glow:      0 0 0 1px ...;         /* CRT halo */
+}`}</code></pre>
+  </section>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- PRIMITIVES                                      -->
+  <!-- ────────────────────────────────────────────── -->
+
+  <section class="mt-16 space-y-12">
+    <header class="space-y-1">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// primitives</h2>
+      <p class="text-sm text-fg-muted">Pure-HTML building blocks. No JS required.</p>
+    </header>
+
+    <!-- buttons -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">buttons</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">4 variants</span>
+      </header>
+      <div class="flex flex-wrap gap-3">
+        <button class="px-4 py-2 bg-primary text-primary-fg uppercase tracking-wider text-sm hover:opacity-90 transition">EXECUTE</button>
+        <button class="px-4 py-2 border border-primary text-primary uppercase tracking-wider text-sm hover:bg-primary/10 transition">STANDBY</button>
+        <button class="px-4 py-2 text-fg-muted hover:text-primary uppercase tracking-wider text-sm transition">CANCEL</button>
+        <button class="px-4 py-2 border border-danger text-danger uppercase tracking-wider text-sm hover:bg-danger/15 transition">ABORT</button>
+      </div>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`<!-- primary — bg-fill -->
+<button class="px-4 py-2 bg-primary text-primary-fg uppercase tracking-wider
+               text-sm hover:opacity-90 transition">EXECUTE</button>
+
+<!-- secondary — outline -->
+<button class="px-4 py-2 border border-primary text-primary uppercase tracking-wider
+               text-sm hover:bg-primary/10 transition">STANDBY</button>
+
+<!-- ghost — text only -->
+<button class="px-4 py-2 text-fg-muted hover:text-primary uppercase tracking-wider
+               text-sm transition">CANCEL</button>
+
+<!-- destructive — danger outline -->
+<button class="px-4 py-2 border border-danger text-danger uppercase tracking-wider
+               text-sm hover:bg-danger/15 transition">ABORT</button>`}</code></pre>
+      <p class="text-xs text-fg-subtle">
+        <span class="text-fg-muted">Rules:</span> ALL CAPS, wide tracking, no border-radius, hover tints bg instead of changing fill. Primary for the
+        affirmative action, destructive when the action is irreversible.
+      </p>
+    </article>
+
+    <!-- cards -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">cards</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">2 variants</span>
+      </header>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <article class="border border-primary/30 bg-bg-elevated p-5">
+          <h4 class="uppercase tracking-wider text-primary text-sm">STANDARD CARD</h4>
+          <p class="mt-2 text-sm text-fg-muted">An elevated surface with a subtle border. Use for grouped content.</p>
+        </article>
+        <article class="border border-primary bg-bg-elevated p-5 shadow-[var(--shadow-glow)]">
+          <h4 class="uppercase tracking-wider text-primary text-sm">HIGHLIGHTED</h4>
+          <p class="mt-2 text-sm text-fg-muted">Uses the <span class="text-primary">--shadow-glow</span> token for that CRT halo.</p>
+        </article>
+      </div>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`<!-- standard -->
+<article class="border border-primary/30 bg-bg-elevated p-5">…</article>
+
+<!-- highlighted — use shadow-glow token for the CRT halo -->
+<article class="border border-primary bg-bg-elevated p-5
+                shadow-[var(--shadow-glow)]">…</article>`}</code></pre>
+    </article>
+
+    <!-- inputs -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">inputs</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">with $ prompt prefix</span>
+      </header>
+      <form class="grid sm:grid-cols-2 gap-3 max-w-xl">
+        <label class="flex flex-col gap-1">
+          <span class="text-xs uppercase tracking-wider text-fg-muted">USER</span>
+          <div class="flex items-center border border-primary/40 bg-bg focus-within:border-primary transition">
+            <span class="px-3 text-primary select-none">$</span>
+            <input type="text" placeholder="root" class="flex-1 py-2 pr-3 bg-transparent text-fg placeholder:text-fg-subtle focus:outline-none" />
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-xs uppercase tracking-wider text-fg-muted">PASSWORD</span>
+          <div class="flex items-center border border-primary/40 bg-bg focus-within:border-primary transition">
+            <span class="px-3 text-primary select-none">$</span>
+            <input type="password" placeholder="••••••••" class="flex-1 py-2 pr-3 bg-transparent text-fg placeholder:text-fg-subtle focus:outline-none" />
+          </div>
+        </label>
+      </form>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`<label class="flex flex-col gap-1">
+  <span class="text-xs uppercase tracking-wider text-fg-muted">USER</span>
+  <div class="flex items-center border border-primary/40 bg-bg
+              focus-within:border-primary transition">
+    <span class="px-3 text-primary select-none">$</span>
+    <input type="text" placeholder="root"
+      class="flex-1 py-2 pr-3 bg-transparent text-fg
+             placeholder:text-fg-subtle focus:outline-none" />
+  </div>
+</label>`}</code></pre>
+      <p class="text-xs text-fg-subtle">
+        <span class="text-fg-muted">Trick:</span> the <span class="text-primary">$</span> prefix lives outside the input as a sibling span so it
+        doesn't steal focus or get included in form submission. The border uses <span class="text-primary">focus-within</span> to highlight the whole field.
+      </p>
+    </article>
+
+    <!-- badges -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">badges</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">5 semantic tones</span>
+      </header>
+      <div class="flex flex-wrap gap-2">
+        <span class="px-2 py-0.5 text-xs uppercase tracking-wider border border-primary/60 text-primary bg-primary/10">primary</span>
+        <span class="px-2 py-0.5 text-xs uppercase tracking-wider border border-accent/60 text-accent bg-accent/10">accent</span>
+        <span class="px-2 py-0.5 text-xs uppercase tracking-wider border border-success/60 text-success bg-success/10">success</span>
+        <span class="px-2 py-0.5 text-xs uppercase tracking-wider border border-warning/60 text-warning bg-warning/10">warning</span>
+        <span class="px-2 py-0.5 text-xs uppercase tracking-wider border border-danger/60 text-danger bg-danger/10">danger</span>
+      </div>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`<span class="px-2 py-0.5 text-xs uppercase tracking-wider
+             border border-primary/60 text-primary bg-primary/10">primary</span>
+
+<!-- swap "primary" for: accent · success · warning · danger -->`}</code></pre>
+    </article>
+  </section>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- PATTERNS — composed React components            -->
+  <!-- ────────────────────────────────────────────── -->
+
+  <section class="mt-20 space-y-12">
+    <header class="space-y-1">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// patterns</h2>
+      <p class="text-sm text-fg-muted">
+        Composed React islands. Add <span class="text-primary">client:load</span> when importing into an Astro page so they hydrate on mount.
+        Live demos are in the <a href="/playground" class="text-primary underline underline-offset-2">playground</a>.
+      </p>
+    </header>
+
+    <!-- modal -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">modal</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Modal.tsx</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Controlled dialog rendered into <span class="text-primary">document.body</span> via React portal. ESC and backdrop click both dismiss.
+        Body scroll is locked while open. Has a header bar, optional footer slot, and matches the terminal aesthetic.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`import { Modal } from '../components/Modal.tsx';
+import { useState } from 'react';
+
+const [open, setOpen] = useState(false);
+
+<Modal
+  open={open}
+  onClose={() => setOpen(false)}
+  title="CONFIRM"
+  footer={
+    <>
+      <button onClick={() => setOpen(false)}>CANCEL</button>
+      <button onClick={confirm}>CONFIRM</button>
+    </>
+  }
+>
+  Are you sure you want to delete /dev/mainframe?
+</Modal>`}</code></pre>
+    </article>
+
+    <!-- drawer -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">drawer</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Drawer.tsx</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Edge-anchored panel. Slides in from <span class="text-primary">right</span> (default), <span class="text-primary">left</span>, or <span class="text-primary">bottom</span>.
+        Same controlled API as Modal — pair with <span class="text-primary">useOpenTransition</span> from the lib so it exits cleanly.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`import { Drawer } from '../components/Drawer.tsx';
+import { useState } from 'react';
+
+const [open, setOpen] = useState(false);
+
+<Drawer
+  open={open}
+  onClose={() => setOpen(false)}
+  title="INSPECTOR"
+  side="right"          // 'right' | 'left' | 'bottom'
+  footer={
+    <button onClick={save}>SAVE</button>
+  }
+>
+  {/* detail panel content */}
+</Drawer>`}</code></pre>
+      <p class="text-xs text-fg-subtle">
+        <span class="text-fg-muted">Animation:</span> per-side keyframe (<span class="text-primary">drawer-in-right</span>, <span class="text-primary">drawer-in-left</span>, <span class="text-primary">drawer-in-bottom</span>) with a snappy <span class="text-primary">cubic-bezier(0.2, 0.9, 0.3, 1)</span> on entry and <span class="text-primary">ease-in</span> on exit.
+        ESC + backdrop click dismiss; body scroll locks while open.
+      </p>
+    </article>
+
+    <!-- command palette -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">command palette</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/CommandPalette.tsx</span>
+        <span class="text-[10px] uppercase tracking-widest text-primary ml-auto">mounted globally · ⌘K</span>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Fuzzy-searchable launcher with arrow-key nav. Lives in <span class="text-primary">Layout.astro</span> so <span class="text-primary">⌘K / Ctrl+K</span> works
+        on every page. To add a new command, append to the <span class="text-primary">commands</span> array inside the component.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`// CommandPalette.tsx — inside the useMemo array
+{
+  id: 'sys-clear',
+  group: 'SYSTEM',
+  label: 'Clear Local Storage',
+  shortcut: 'DEMO',
+  action: () => {
+    localStorage.clear();
+    window.location.reload();
+  },
+}`}</code></pre>
+      <p class="text-xs text-fg-subtle">
+        <span class="text-fg-muted">Groups:</span> <span class="text-primary">NAVIGATE</span> · <span class="text-primary">THEME</span> · <span class="text-primary">SYSTEM</span>.
+        Theme/CRT commands use <span class="text-primary">applyTheme()</span>/<span class="text-primary">applyCRT()</span> from <span class="text-primary">src/lib/preferences.ts</span>, which broadcasts a change event so the header toggle buttons stay in sync.
+      </p>
+    </article>
+
+    <!-- toast -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">toast</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Playground.tsx → ToastDemo</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Transient notifications portaled to the bottom-right corner of the viewport. Stack vertically, auto-dismiss after 4.5s, dismissable with the
+        <span class="text-primary">[×]</span> button. Four severity levels: <span class="text-primary">INFO</span>, <span class="text-success">OK</span>, <span class="text-warning">WARN</span>, <span class="text-danger">ERROR</span>.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`// Currently bundled with its 4 trigger buttons in ToastDemo.
+// To use elsewhere, extract the toasts state + portal block into a
+// reusable <ToastHost /> and expose a push(level, msg) helper.
+
+import { ToastDemo } from '../components/Playground.tsx';
+<ToastDemo client:load />`}</code></pre>
+    </article>
+
+    <!-- breach alert -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">breach alert</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/BreachAlert.tsx</span>
+        <span class="text-[10px] uppercase tracking-widest text-danger ml-auto">event-driven · scifyos:breach</span>
+      </header>
+      <p class="text-sm text-fg-muted">
+        A headless React island that listens for a global <span class="text-primary">scifyos:breach</span> custom event. When fired, it portals a
+        full-screen <span class="text-danger">red pulsing overlay</span> plus an all-red dialog with the danger icon. Decoupled by design — anything
+        can trigger the alert with one line of code.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`// 1. Mount once per page (or move into Layout to enable everywhere):
+import BreachAlert from '../components/BreachAlert.tsx';
+<BreachAlert client:load />
+
+// 2. Trigger from anywhere — a button, a command, an API failure:
+window.dispatchEvent(new CustomEvent('scifyos:breach'));`}</code></pre>
+    </article>
+
+    <!-- tabs -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">tabs</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Playground.tsx → Tabs</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Self-contained tab strip. Edit the <span class="text-primary">tabPanels</span> array to change the panels — each item has an id, label, and a
+        list of [key, value] rows rendered as a definition list.
+      </p>
+      <pre class="text-xs bg-bg border border-primary/30 p-3 text-fg-muted overflow-x-auto"><code>{`// Top of Playground.tsx
+const tabPanels = [
+  {
+    id: 'overview',
+    label: 'OVERVIEW',
+    rows: [['uptime', '47d 12h'], ['kernel', '0.1.0']],
+  },
+  // …add more
+];
+
+import { Tabs } from '../components/Playground.tsx';
+<Tabs client:load />`}</code></pre>
+    </article>
+
+    <!-- toggle -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">toggle</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Playground.tsx → Toggle</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Two-state switch with an animated knob. Pure boolean — uncontrolled, internal state. Wrap with a controlled version if you need to lift the
+        value (see <span class="text-primary">ThemeSwitcher</span> for a controlled example that persists to <span class="text-primary">localStorage</span>).
+      </p>
+    </article>
+
+    <!-- stats / log / progress / terminal -->
+    <article class="space-y-3">
+      <header class="flex items-baseline gap-3 flex-wrap border-b border-primary/20 pb-2">
+        <h3 class="uppercase tracking-wider text-primary">stats · log · progress · terminal</h3>
+        <span class="text-[10px] uppercase tracking-widest text-fg-subtle">src/components/Playground.tsx</span>
+        <a href="/playground" class="text-[10px] uppercase tracking-widest text-fg-muted hover:text-primary ml-auto">[demo →]</a>
+      </header>
+      <p class="text-sm text-fg-muted">
+        Animated reference widgets that double as templates. Each is self-contained, ticks on its own interval, and uses only theme tokens for colour.
+      </p>
+      <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div class="flex justify-between gap-3 border-b border-primary/10 py-1.5">
+          <dt class="text-fg-subtle uppercase text-xs tracking-wider">Stats</dt>
+          <dd class="text-fg text-right">live metric tiles, danger threshold at 85%</dd>
+        </div>
+        <div class="flex justify-between gap-3 border-b border-primary/10 py-1.5">
+          <dt class="text-fg-subtle uppercase text-xs tracking-wider">ActivityLog</dt>
+          <dd class="text-fg text-right">streaming feed, auto-scrolls inner container</dd>
+        </div>
+        <div class="flex justify-between gap-3 border-b border-primary/10 py-1.5">
+          <dt class="text-fg-subtle uppercase text-xs tracking-wider">Progress</dt>
+          <dd class="text-fg text-right">ASCII progress bar, pure CSS &amp; text</dd>
+        </div>
+        <div class="flex justify-between gap-3 border-b border-primary/10 py-1.5">
+          <dt class="text-fg-subtle uppercase text-xs tracking-wider">Terminal</dt>
+          <dd class="text-fg text-right">fake CLI, customise the <span class="text-primary">run()</span> switch</dd>
+        </div>
+      </dl>
+    </article>
+  </section>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- HOW TO PUT IT TOGETHER                          -->
+  <!-- ────────────────────────────────────────────── -->
+
+  <section class="mt-20 space-y-3 border-t border-primary/30 pt-8">
+    <h2 class="text-xs uppercase tracking-widest text-primary">// putting it together</h2>
+    <ol class="space-y-2 text-sm text-fg-muted list-decimal pl-5 max-w-2xl marker:text-primary">
+      <li>
+        Pick a primitive (button / card / input / badge) and copy the markup directly into your <span class="text-primary">.astro</span> file — no JS needed.
+      </li>
+      <li>
+        For a composed pattern, <span class="text-primary">import</span> the component and add <span class="text-primary">client:load</span> so Astro hydrates it as a React island.
+      </li>
+      <li>
+        Cross-component messages (open a modal, fire an alert, push a toast) flow over <span class="text-primary">window.dispatchEvent</span> with a
+        <span class="text-primary">scifyos:*</span> namespace — no global stores.
+      </li>
+      <li>
+        Theme + CRT preferences live in <span class="text-primary">src/lib/preferences.ts</span>. Call <span class="text-primary">applyTheme()</span> or
+        <span class="text-primary">applyCRT()</span> and every subscribed component re-syncs.
+      </li>
+    </ol>
+  </section>
+</Layout>

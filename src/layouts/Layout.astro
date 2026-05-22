@@ -1,0 +1,143 @@
+---
+import "../styles/global.css";
+import ThemeSwitcher from "../components/ThemeSwitcher.tsx";
+import CRTToggle from "../components/CRTToggle.tsx";
+import CursorToggle from "../components/CursorToggle.tsx";
+import CursorReticle from "../components/CursorReticle.tsx";
+import CommandPalette from "../components/CommandPalette.tsx";
+
+interface Props {
+  title?: string;
+  chrome?: "full" | "minimal" | "bare";
+}
+
+const { title = "scifyos · theme", chrome = "full" } = Astro.props;
+
+const nav = [
+  { href: "/", label: "OVERVIEW" },
+  { href: "/colors", label: "COLORS" },
+  { href: "/typography", label: "TYPOGRAPHY" },
+  { href: "/components", label: "COMPONENTS" },
+  { href: "/playground", label: "PLAYGROUND" },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        try {
+          const t = localStorage.getItem("scifyos-theme");
+          root.dataset.theme = t === "light" || t === "dark" ? t : "dark";
+        } catch {
+          root.dataset.theme = "dark";
+        }
+        try {
+          const c = localStorage.getItem("scifyos-crt");
+          root.dataset.crt = c === "on" ? "on" : "off";
+        } catch {
+          root.dataset.crt = "off";
+        }
+        try {
+          const c = localStorage.getItem("scifyos-cursor");
+          root.dataset.cursor = c === "on" ? "on" : "off";
+        } catch {
+          root.dataset.cursor = "off";
+        }
+      })();
+    </script>
+  </head>
+  <body
+    class:list={[
+      "bg-bg text-fg",
+      chrome === "bare" && "h-dvh overflow-hidden",
+    ]}
+  >
+    <div
+      class:list={[
+        "page-content flex flex-col relative",
+        chrome === "bare" ? "h-full" : "min-h-dvh",
+      ]}
+    >
+      {chrome !== "bare" && (
+      <header class="border-b border-primary/40 bg-bg/80 backdrop-blur sticky top-0 z-20">
+        <div class="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
+          <a href="/" class="text-sm tracking-widest uppercase text-primary shrink-0">
+            <span class="text-fg-subtle">[</span>scifyos@theme<span class="text-fg-subtle">]</span>
+            <span class="text-fg-subtle">~$</span>
+            <span class="caret"></span>
+          </a>
+
+          {chrome === "full" && (
+            <>
+              <nav class="hidden xl:flex gap-0 text-xs uppercase tracking-wider">
+                {nav.map((item) => {
+                  const active = path === item.href;
+                  return (
+                    <a
+                      href={item.href}
+                      class:list={[
+                        "px-2.5 py-1.5 border transition-colors",
+                        active
+                          ? "border-primary text-primary bg-primary/10"
+                          : "border-transparent text-fg-muted hover:text-primary hover:border-primary/40",
+                      ]}
+                    >
+                      {item.label}
+                    </a>
+                  );
+                })}
+              </nav>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <CommandPalette client:load />
+                <CursorToggle client:load />
+                <CRTToggle client:load />
+                <ThemeSwitcher client:load />
+              </div>
+            </>
+          )}
+        </div>
+      </header>
+      )}
+
+      <main
+        class:list={[
+          chrome === "bare"
+            ? "flex-1 flex flex-col min-h-0 relative z-10"
+            : chrome === "minimal"
+            ? "flex-1 flex flex-col mx-auto w-full max-w-5xl px-4 sm:px-6 py-4 min-h-0 relative z-10"
+            : "flex-1 mx-auto max-w-5xl w-full px-6 py-10 relative z-10",
+        ]}
+      >
+        <slot />
+      </main>
+
+      {chrome === "full" && (
+        <footer class="border-t border-primary/30">
+          <div class="mx-auto max-w-5xl px-6 py-4 text-xs text-fg-subtle uppercase tracking-wider flex justify-between">
+            <span>// tokens: src/styles/global.css</span>
+            <span>v0.1 · scifyos</span>
+          </div>
+        </footer>
+      )}
+    </div>
+
+    <div class="crt-overlay" aria-hidden="true">
+      <div class="crt-overlay__scanlines"></div>
+      <div class="crt-overlay__sweep"></div>
+      <div class="crt-overlay__flicker"></div>
+      <div class="crt-overlay__vignette"></div>
+    </div>
+
+    <CursorReticle client:load />
+  </body>
+</html>

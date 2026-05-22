@@ -1,0 +1,200 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Typography · scifyos">
+  <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> typography</h1>
+  <p class="mt-2 text-fg-muted text-sm">One typeface, one mood. Tweak <span class="text-primary">--font-*</span> in <span class="text-primary">global.css</span>.</p>
+
+  <section class="mt-10 space-y-6">
+    <div class="space-y-1">
+      <p class="text-xs uppercase tracking-widest text-primary">// display / 5xl</p>
+      <p class="text-5xl tracking-tight uppercase">ACCESS GRANTED.</p>
+    </div>
+    <div class="space-y-1">
+      <p class="text-xs uppercase tracking-widest text-primary">// heading / 3xl</p>
+      <p class="text-3xl tracking-tight uppercase">a new section</p>
+    </div>
+    <div class="space-y-1">
+      <p class="text-xs uppercase tracking-widest text-primary">// subheading / xl</p>
+      <p class="text-xl text-fg-muted">supporting the headline above.</p>
+    </div>
+    <div class="space-y-1 max-w-2xl">
+      <p class="text-xs uppercase tracking-widest text-primary">// body / base</p>
+      <p class="text-base text-fg leading-relaxed">
+        The quick brown fox jumps over the lazy dog. Use this scale for paragraph text,
+        descriptions, and most UI copy. Aim for a comfortable line length around 65 characters.
+      </p>
+    </div>
+    <div class="space-y-1">
+      <p class="text-xs uppercase tracking-widest text-primary">// caption / sm muted</p>
+      <p class="text-sm text-fg-muted">subtle metadata, timestamps, hints.</p>
+    </div>
+    <div class="space-y-1">
+      <p class="text-xs uppercase tracking-widest text-primary">// code / sm</p>
+      <pre class="text-sm bg-bg-elevated border border-primary/30 p-4 text-fg-muted overflow-x-auto"><code>{`const theme = {
+  primary: "oklch(0.87 0.30 142)",
+  radius: 0,
+};`}</code></pre>
+    </div>
+  </section>
+
+  <section class="mt-16 space-y-4">
+    <div>
+      <h2 class="text-2xl tracking-tight uppercase">
+        <span class="text-fg-subtle">&gt;</span> icons
+      </h2>
+      <p class="mt-2 text-fg-muted text-sm">
+        The glyph set used across <span class="text-primary">/os</span>: dock,
+        desktop, top bar, and overlays. All stroked at 1.4–1.6, sharp corners,
+        <span class="text-primary">currentColor</span> stroke.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <!-- Terminal -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" stroke-linecap="square" class="size-8" aria-hidden="true">
+          <rect x="2.5" y="4" width="19" height="16" />
+          <polyline points="6,9 9,12 6,15" />
+          <line x1="11.5" y1="15" x2="17" y2="15" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">terminal</span>
+      </div>
+
+      <!-- Folder -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" stroke-linecap="square" class="size-8" aria-hidden="true">
+          <path d="M2 4 L9 4 L11 2 L22 2 L22 16 L2 16 Z" />
+          <line x1="2" y1="6.5" x2="22" y2="6.5" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">folder</span>
+      </div>
+
+      <!-- Info -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" class="size-8" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" />
+          <line x1="16" y1="13" x2="16" y2="23" />
+          <circle cx="16" cy="9" r="1.2" fill="currentColor" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">info</span>
+      </div>
+
+      <!-- Components grid -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-8" aria-hidden="true">
+          <rect x="3" y="3" width="8" height="8" />
+          <rect x="13" y="3" width="8" height="8" />
+          <rect x="3" y="13" width="8" height="8" />
+          <rect x="13" y="13" width="8" height="8" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">components</span>
+      </div>
+
+      <!-- Play -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-8" aria-hidden="true">
+          <polygon points="6,4 6,20 20,12" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">play</span>
+      </div>
+
+      <!-- Logs -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" stroke-linecap="square" class="size-8" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" />
+          <line x1="6.5" y1="7.5" x2="17.5" y2="7.5" />
+          <line x1="6.5" y1="11" x2="17.5" y2="11" />
+          <line x1="6.5" y1="14.5" x2="13.5" y2="14.5" />
+          <line x1="6.5" y1="18" x2="11" y2="18" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">logs</span>
+      </div>
+
+      <!-- Ship -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" stroke-linecap="square" class="size-8" aria-hidden="true">
+          <path d="M12 2 L18 14 L15 13 L12 20 L9 13 L6 14 Z" />
+          <line x1="9" y1="9" x2="6" y2="11" />
+          <line x1="15" y1="9" x2="18" y2="11" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">ship</span>
+      </div>
+
+      <!-- Hacking -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 32 32" fill="currentColor" class="size-8" aria-hidden="true">
+          <path fill-rule="evenodd" d="M16 3 C11 3 8 6 8 11 L8 20 Q8 21 9 21 L23 21 Q24 21 24 20 L24 11 C24 6 21 3 16 3 Z M10 11 L22 11 L22 18 L10 18 Z" />
+          <rect x="5" y="22" width="22" height="2" />
+          <path d="M3 24 L29 24 L27 30 L5 30 Z" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">hacking</span>
+      </div>
+
+      <!-- Cog -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter" class="size-8" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.2" />
+          <line x1="12" y1="2.5" x2="12" y2="5.5" />
+          <line x1="12" y1="18.5" x2="12" y2="21.5" />
+          <line x1="2.5" y1="12" x2="5.5" y2="12" />
+          <line x1="18.5" y1="12" x2="21.5" y2="12" />
+          <line x1="5.2" y1="5.2" x2="7.3" y2="7.3" />
+          <line x1="16.7" y1="16.7" x2="18.8" y2="18.8" />
+          <line x1="5.2" y1="18.8" x2="7.3" y2="16.7" />
+          <line x1="16.7" y1="7.3" x2="18.8" y2="5.2" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">cog</span>
+      </div>
+
+      <!-- Lock -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" stroke-linejoin="miter" class="size-8" aria-hidden="true">
+          <rect x="3" y="6.5" width="8" height="6" />
+          <path d="M4.5 6.5 V4 A2.5 2.5 0 0 1 9.5 4 V6.5" />
+          <line x1="7" y1="8.5" x2="7" y2="10.5" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">lock</span>
+      </div>
+
+      <!-- Wifi -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" class="size-8" aria-hidden="true">
+          <path d="M2.5 6.5 Q8 2.5 13.5 6.5" />
+          <path d="M4.5 9 Q8 6.5 11.5 9" />
+          <path d="M6.5 11.5 Q8 10.5 9.5 11.5" />
+          <circle cx="8" cy="13.5" r="0.5" fill="currentColor" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">wifi</span>
+      </div>
+
+      <!-- Battery -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="1" class="size-8" aria-hidden="true">
+          <rect x="1" y="1" width="22" height="10" />
+          <rect x="24" y="4" width="1.5" height="4" fill="currentColor" />
+          <rect x="2.5" y="2.5" width="19" height="7" fill="currentColor" stroke="none" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">battery</span>
+      </div>
+
+      <!-- Bell -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="miter" stroke-linecap="round" class="size-8" aria-hidden="true">
+          <path d="M3 12 L13 12 L11.5 10.5 L11.5 7 Q11.5 4 8 4 Q4.5 4 4.5 7 L4.5 10.5 Z" />
+          <path d="M7 14 Q8 15 9 14" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">bell</span>
+      </div>
+
+      <!-- Start menu polygon -->
+      <div class="flex flex-col items-center gap-2 p-4 border border-primary/30 bg-bg-elevated text-primary hover:border-primary transition">
+        <svg viewBox="0 0 14 14" fill="currentColor" class="size-8" aria-hidden="true">
+          <polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" />
+        </svg>
+        <span class="text-[10px] uppercase tracking-widest text-fg-muted">start</span>
+      </div>
+    </div>
+  </section>
+</Layout>

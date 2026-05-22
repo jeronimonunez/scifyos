@@ -1,0 +1,16 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FullTerminal from "../components/FullTerminal.tsx";
+import BreachAlert from "../components/BreachAlert.tsx";
+import Hacked from "../components/Hacked.tsx";
+import CopyingFiles from "../components/CopyingFiles.tsx";
+import FxHost from "../components/Fx.tsx";
+---
+
+<Layout title="scifyos · terminal" chrome="bare">
+  <FullTerminal client:load />
+  <BreachAlert client:load />
+  <Hacked client:load />
+  <CopyingFiles client:load />
+  <FxHost client:load />
+</Layout>

@@ -1,0 +1,65 @@
+---
+import Layout from "../layouts/Layout.astro";
+import OsTopBar from "../components/OsTopBar.tsx";
+import OsDock from "../components/OsDock.tsx";
+import DesktopIcons from "../components/DesktopIcons.tsx";
+import WindowManager from "../components/WindowManager.tsx";
+import StartMenu from "../components/StartMenu.tsx";
+import CommandPalette from "../components/CommandPalette.tsx";
+import PasswordPrompt from "../components/PasswordPrompt.tsx";
+import BootScreen from "../components/BootScreen.tsx";
+import BreachAlert from "../components/BreachAlert.tsx";
+import Hacked from "../components/Hacked.tsx";
+import CopyingFiles from "../components/CopyingFiles.tsx";
+import FxHost from "../components/Fx.tsx";
+---
+
+<Layout title="scifyos · os" chrome="bare">
+  <!--
+    Static pre-boot screen. Rendered server-side so the user never sees
+    a flash of /os before React mounts the animated <BootScreen />.
+    The BootScreen component removes this node on mount.
+  -->
+  <div
+    id="scifyos-pre-boot"
+    class="fixed inset-0 z-[200] flex items-center justify-center text-primary font-mono text-xs uppercase tracking-widest"
+    style="background: var(--color-bg);"
+  >
+    // booting scifyos<span class="boot-caret inline-block w-[0.6em] h-[1em] align-text-bottom bg-primary ml-1"></span>
+  </div>
+
+  <BootScreen client:load />
+
+  <OsTopBar client:load />
+
+  <!--
+    Desktop area: z-0 creates its own stacking context so windows
+    (which use z-100+ for focus order) stay below the top bar (z-20)
+    instead of escaping main's stacking context.
+  -->
+  <div class="flex-1 relative z-0 overflow-hidden">
+    <!-- wallpaper text, centered, non-interactive -->
+    <div class="absolute inset-0 flex items-center justify-center text-fg-subtle text-center select-none pointer-events-none">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em]">scifyos</p>
+        <p class="mt-2 text-[10px] uppercase tracking-widest">v0.1.0-rc1</p>
+        <p class="mt-6 text-[10px] uppercase tracking-widest text-fg-subtle/60">
+          // double-click an icon · or pick from start menu
+        </p>
+      </div>
+    </div>
+
+    <DesktopIcons client:load />
+    <WindowManager client:load />
+  </div>
+
+  <StartMenu client:load />
+  <OsDock client:load />
+
+  <CommandPalette client:load hideTrigger />
+  <PasswordPrompt client:load />
+  <BreachAlert client:load />
+  <Hacked client:load />
+  <CopyingFiles client:load />
+  <FxHost client:load />
+</Layout>

@@ -1,0 +1,47 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const sections = [
+  { href: "/colors", title: "COLORS", blurb: "Surface, foreground, primary, accent, semantic." },
+  { href: "/typography", title: "TYPOGRAPHY", blurb: "Monospace scale, terminal text styles." },
+  { href: "/components", title: "COMPONENTS", blurb: "Buttons, cards, inputs, badges." },
+  { href: "/playground", title: "PLAYGROUND", blurb: "Interactive demos — modals, toggles, inputs." },
+];
+
+const bootLines = [
+  "BOOT> initializing scifyos kernel ........... OK",
+  "BOOT> loading design tokens ................. OK",
+  "BOOT> mounting theme engine ................. OK",
+  "BOOT> ready.",
+];
+---
+
+<Layout title="scifyos · theme">
+  <section class="space-y-4">
+    <pre class="text-xs leading-relaxed text-fg-muted whitespace-pre">{bootLines.join("\n")}</pre>
+    <p class="text-xs uppercase tracking-widest text-primary">// v0.1 — scifyos design system</p>
+    <h1 class="text-4xl sm:text-5xl tracking-tight uppercase">
+      <span class="text-fg-subtle">&gt;</span> a <span class="text-primary">theme</span> for things<br />
+      built after midnight.
+    </h1>
+    <p class="text-fg-muted max-w-2xl">
+      Black screens, fluorescent green text, sharp edges. Inspired by every hacker movie between 1995 and 2003.
+      Edit tokens in <span class="text-primary">src/styles/global.css</span> and the whole site updates.
+    </p>
+  </section>
+
+  <section class="mt-12 grid sm:grid-cols-2 gap-3">
+    {sections.map((s) => (
+      <a
+        href={s.href}
+        class="group border border-primary/30 bg-bg-elevated p-5 hover:border-primary hover:bg-primary/5 transition-colors"
+      >
+        <div class="flex items-center justify-between">
+          <h2 class="uppercase tracking-wider text-primary">{s.title}</h2>
+          <span class="text-fg-subtle group-hover:text-primary transition-colors">[→]</span>
+        </div>
+        <p class="mt-2 text-sm text-fg-muted">{s.blurb}</p>
+      </a>
+    ))}
+  </section>
+</Layout>

@@ -1,0 +1,59 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const groups = [
+  {
+    label: "Surface",
+    swatches: [
+      { name: "bg", className: "bg-bg" },
+      { name: "bg-elevated", className: "bg-bg-elevated" },
+      { name: "surface", className: "bg-surface" },
+      { name: "border", className: "bg-border" },
+    ],
+  },
+  {
+    label: "Foreground",
+    swatches: [
+      { name: "fg", className: "bg-fg" },
+      { name: "fg-muted", className: "bg-fg-muted" },
+      { name: "fg-subtle", className: "bg-fg-subtle" },
+    ],
+  },
+  {
+    label: "Brand",
+    swatches: [
+      { name: "primary", className: "bg-primary" },
+      { name: "accent", className: "bg-accent" },
+    ],
+  },
+  {
+    label: "Semantic",
+    swatches: [
+      { name: "success", className: "bg-success" },
+      { name: "warning", className: "bg-warning" },
+      { name: "danger", className: "bg-danger" },
+    ],
+  },
+];
+---
+
+<Layout title="Colors · scifyos">
+  <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> colors</h1>
+  <p class="mt-2 text-fg-muted text-sm">Defined as <span class="text-primary">--color-*</span> tokens in <span class="text-primary">global.css</span>.</p>
+
+  <div class="mt-10 space-y-8">
+    {groups.map((group) => (
+      <section>
+        <h2 class="text-xs uppercase tracking-widest text-primary mb-3">// {group.label}</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {group.swatches.map((s) => (
+            <div class="border border-primary/30 bg-bg-elevated">
+              <div class={`h-20 ${s.className}`}></div>
+              <div class="px-3 py-2 text-xs uppercase tracking-wider text-fg-muted border-t border-primary/20">{s.name}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+</Layout>

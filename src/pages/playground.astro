@@ -1,0 +1,125 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DemoModal from "../components/Modal.tsx";
+import DemoDrawer from "../components/Drawer.tsx";
+import BreachAlert from "../components/BreachAlert.tsx";
+import Hacked from "../components/Hacked.tsx";
+import CopyingFiles from "../components/CopyingFiles.tsx";
+import FxHost from "../components/Fx.tsx";
+import FxButtons from "../components/FxButtons.tsx";
+import FileTree from "../components/FileTree.tsx";
+import {
+  Terminal,
+  Toggle,
+  Progress,
+  Stats,
+  ActivityLog,
+  Tabs,
+  ToastDemo,
+} from "../components/Playground.tsx";
+---
+
+<Layout title="Playground · scifyos">
+  <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> playground</h1>
+  <p class="mt-2 text-fg-muted text-sm max-w-2xl">
+    Interactive demos. Each widget below is a React island — the rest of the page is still static HTML.
+    Try toggling <span class="text-primary">DARK</span> / <span class="text-primary">LIGHT</span> in the header to see how every component reacts to the theme tokens.
+  </p>
+
+  <section class="mt-10 space-y-3">
+    <h2 class="text-xs uppercase tracking-widest text-primary">// stats — live metrics</h2>
+    <p class="text-sm text-fg-muted">Tiles tick every 1.4s. Bars switch to <span class="text-warning">warning</span> at 65% and <span class="text-danger">danger</span> at 85%.</p>
+    <Stats client:load />
+  </section>
+
+  <section class="mt-10 grid lg:grid-cols-2 gap-8">
+    <article class="space-y-3">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// modal</h2>
+      <p class="text-sm text-fg-muted">
+        ESC, the close button, or clicking the backdrop all dismiss the modal.
+        Body scroll is locked while it's open.
+      </p>
+      <DemoModal client:load />
+    </article>
+
+    <article class="space-y-3">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// drawer</h2>
+      <p class="text-sm text-fg-muted">
+        Edge-anchored panel. Three sides supported — right (default), left, bottom.
+        Each side animates from its own edge via a dedicated keyframe.
+      </p>
+      <DemoDrawer client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// effects — fire animations separately</h2>
+      <p class="text-sm text-fg-muted">
+        Each button dispatches its own <span class="text-primary">scifyos:fx:*</span> custom event.
+        The atomic effects (matrix rain, glitch, data slices, red pulse) live in <span class="text-primary">src/components/Fx.tsx</span>
+        and can be triggered from any component or the console with <span class="text-primary">window.dispatchEvent</span>.
+      </p>
+      <FxButtons client:load />
+    </article>
+
+    <article class="space-y-3">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// toggle</h2>
+      <p class="text-sm text-fg-muted">
+        A simple switch using only theme tokens — no extra colors hardcoded.
+      </p>
+      <Toggle client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// terminal</h2>
+      <p class="text-sm text-fg-muted">Fake tty — try <span class="text-primary">help</span>, <span class="text-primary">whoami</span>, <span class="text-primary">ls</span>, <span class="text-primary">date</span>, <span class="text-primary">clear</span>.</p>
+      <Terminal client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// progress</h2>
+      <p class="text-sm text-fg-muted">An ASCII progress bar — pure theme color, no extra CSS.</p>
+      <Progress client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// activity log</h2>
+      <p class="text-sm text-fg-muted">Streaming events with INFO / WARN / ERROR levels. Auto-scrolls, keeps the last 14 entries.</p>
+      <ActivityLog client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// tabs</h2>
+      <p class="text-sm text-fg-muted">Three panels of system data — overview, network, disk.</p>
+      <Tabs client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// toasts</h2>
+      <p class="text-sm text-fg-muted">
+        Trigger transient notifications. They portal to <span class="text-primary">document.body</span>, stack in the bottom-right corner, and auto-dismiss after 4.5s.
+        The "×" button or another click on the trigger also works.
+      </p>
+      <ToastDemo client:load />
+    </article>
+
+    <article class="space-y-3 lg:col-span-2">
+      <h2 class="text-xs uppercase tracking-widest text-primary">// file tree</h2>
+      <p class="text-sm text-fg-muted">
+        Two-pane explorer. Click a folder chevron to expand/collapse; click any file to view its mock content on the right.
+        Tree state lives in a <span class="text-primary">Set&lt;path&gt;</span>, content is just text — no syntax highlighter, on purpose.
+      </p>
+      <FileTree client:load />
+    </article>
+
+  </section>
+
+  <p class="mt-10 text-xs uppercase tracking-widest text-fg-subtle">
+    // command palette is now in the header on every page — press <span class="text-primary">⌘K / Ctrl+K</span>.
+    Includes a <span class="text-danger">Trigger Security Breach</span> demo command.
+  </p>
+
+  <BreachAlert client:load />
+  <Hacked client:load />
+  <CopyingFiles client:load />
+  <FxHost client:load />
+</Layout>
