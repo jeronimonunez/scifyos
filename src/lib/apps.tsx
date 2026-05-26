@@ -4,6 +4,7 @@ import FileTree from "../components/FileTree";
 import HackingApp from "../components/HackingApp";
 import LogsApp from "../components/LogsApp";
 import ShipcraftApp from "../components/ShipcraftApp";
+import { BRANDING } from "./branding";
 import {
   applyCRT,
   applyCursor,
@@ -93,17 +94,19 @@ function AboutApp() {
   return (
     <div className="p-4 text-xs text-fg-muted space-y-3">
       <div>
-        <p className="text-primary text-sm uppercase tracking-widest">SCIFYOS</p>
-        <p className="text-fg-subtle uppercase tracking-widest">v0.1.0-rc1</p>
+        <p className="text-primary text-sm uppercase tracking-widest">
+          {BRANDING.name.toUpperCase()}
+        </p>
+        <p className="text-fg-subtle uppercase tracking-widest">v{BRANDING.version}</p>
       </div>
-      <p>a design system for things built after midnight.</p>
+      <p>{BRANDING.tagline}</p>
       <dl className="grid grid-cols-[80px_1fr] gap-y-1 text-[10px] uppercase tracking-widest">
         <dt className="text-fg-subtle">kernel</dt>
-        <dd>scifyos 0.1.0</dd>
+        <dd>{BRANDING.name} {BRANDING.version}</dd>
         <dt className="text-fg-subtle">uptime</dt>
         <dd>47d 12h 03m</dd>
         <dt className="text-fg-subtle">stack</dt>
-        <dd>astro · react · tailwind</dd>
+        <dd>{BRANDING.stack}</dd>
         <dt className="text-fg-subtle">memory</dt>
         <dd>2.1 / 8 GB</dd>
       </dl>

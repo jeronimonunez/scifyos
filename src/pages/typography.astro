@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { pageTitle } from "../lib/branding";
 ---
 
-<Layout title="Typography · scifyos">
+<Layout title={pageTitle("Typography")}>
   <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> typography</h1>
   <p class="mt-2 text-fg-muted text-sm">One typeface, one mood. Tweak <span class="text-primary">--font-*</span> in <span class="text-primary">global.css</span>.</p>
 

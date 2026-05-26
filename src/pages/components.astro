@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { pageTitle } from "../lib/branding";
 ---
 
-<Layout title="Components · scifyos">
+<Layout title={pageTitle("Components")}>
   <h1 class="text-3xl tracking-tight uppercase">
     <span class="text-fg-subtle">&gt;</span> components
   </h1>

@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { BRANDING, pageTitle } from "../lib/branding";
 
 const sections = [
   { href: "/colors", title: "COLORS", blurb: "Surface, foreground, primary, accent, semantic." },
@@ -9,17 +10,17 @@ const sections = [
 ];
 
 const bootLines = [
-  "BOOT> initializing scifyos kernel ........... OK",
+  `BOOT> initializing ${BRANDING.name} kernel ........... OK`,
   "BOOT> loading design tokens ................. OK",
   "BOOT> mounting theme engine ................. OK",
   "BOOT> ready.",
 ];
 ---
 
-<Layout title="scifyos · theme">
+<Layout title={pageTitle("theme")}>
   <section class="space-y-4">
     <pre class="text-xs leading-relaxed text-fg-muted whitespace-pre">{bootLines.join("\n")}</pre>
-    <p class="text-xs uppercase tracking-widest text-primary">// v0.1 — scifyos design system</p>
+    <p class="text-xs uppercase tracking-widest text-primary">// v{BRANDING.versionShort} — {BRANDING.name} design system</p>
     <h1 class="text-4xl sm:text-5xl tracking-tight uppercase">
       <span class="text-fg-subtle">&gt;</span> a <span class="text-primary">theme</span> for things<br />
       built after midnight.

@@ -5,9 +5,10 @@ import BreachAlert from "../components/BreachAlert.tsx";
 import Hacked from "../components/Hacked.tsx";
 import CopyingFiles from "../components/CopyingFiles.tsx";
 import FxHost from "../components/Fx.tsx";
+import { BRANDING } from "../lib/branding";
 ---
 
-<Layout title="scifyos · terminal" chrome="bare">
+<Layout title={`${BRANDING.name} · terminal`} chrome="bare">
   <FullTerminal client:load />
   <BreachAlert client:load />
   <Hacked client:load />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { applyCRT, applyCursor, applyTheme } from "../lib/preferences";
+import { BRANDING, PROMPT } from "../lib/branding";
 
 type LineKind = "input" | "output" | "info" | "error" | "primary" | "danger" | "ai";
 type Line = { kind: LineKind; text: string; prompt?: string };
@@ -532,11 +533,11 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
         break;
 
       case "whoami":
-        out.push({ kind: "output", text: "root@scifyos" });
+        out.push({ kind: "output", text: PROMPT });
         break;
 
       case "pwd":
-        out.push({ kind: "output", text: "/dev/scifyos/terminal" });
+        out.push({ kind: "output", text: `/dev/${BRANDING.hostname}/terminal` });
         break;
 
       case "ls":
@@ -548,7 +549,7 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
         break;
 
       case "uname":
-        out.push({ kind: "output", text: "scifyos 0.1.0 #1 SMP TERMINAL-EDITION mono" });
+        out.push({ kind: "output", text: `${BRANDING.name} ${BRANDING.version} #1 SMP TERMINAL-EDITION mono` });
         break;
 
       case "echo":
@@ -864,7 +865,7 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
             className="ml-auto text-sm tracking-widest uppercase text-primary hover:text-fg transition-colors"
             title="back to home"
           >
-            <span className="text-fg-subtle">[</span>scifyos@theme<span className="text-fg-subtle">]</span>
+            <span className="text-fg-subtle">[</span>{BRANDING.pageChip}<span className="text-fg-subtle">]</span>
             <span className="text-fg-subtle">~$</span>
             <span className="caret"></span>
           </a>

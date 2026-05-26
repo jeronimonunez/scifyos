@@ -9,12 +9,13 @@ import CommandPalette from "../components/CommandPalette.tsx";
 import PasswordPrompt from "../components/PasswordPrompt.tsx";
 import BootScreen from "../components/BootScreen.tsx";
 import BreachAlert from "../components/BreachAlert.tsx";
+import { BRANDING, pageTitle } from "../lib/branding";
 import Hacked from "../components/Hacked.tsx";
 import CopyingFiles from "../components/CopyingFiles.tsx";
 import FxHost from "../components/Fx.tsx";
 ---
 
-<Layout title="scifyos · os" chrome="bare">
+<Layout title={pageTitle("os")} chrome="bare">
   <!--
     Static pre-boot screen. Rendered server-side so the user never sees
     a flash of /os before React mounts the animated <BootScreen />.
@@ -25,7 +26,7 @@ import FxHost from "../components/Fx.tsx";
     class="fixed inset-0 z-[200] flex items-center justify-center text-primary font-mono text-xs uppercase tracking-widest"
     style="background: var(--color-bg);"
   >
-    // booting scifyos<span class="boot-caret inline-block w-[0.6em] h-[1em] align-text-bottom bg-primary ml-1"></span>
+    // booting {BRANDING.name}<span class="boot-caret inline-block w-[0.6em] h-[1em] align-text-bottom bg-primary ml-1"></span>
   </div>
 
   <BootScreen client:load />
@@ -41,8 +42,8 @@ import FxHost from "../components/Fx.tsx";
     <!-- wallpaper text, centered, non-interactive -->
     <div class="absolute inset-0 flex items-center justify-center text-fg-subtle text-center select-none pointer-events-none">
       <div>
-        <p class="text-xs uppercase tracking-[0.4em]">scifyos</p>
-        <p class="mt-2 text-[10px] uppercase tracking-widest">v0.1.0-rc1</p>
+        <p class="text-xs uppercase tracking-[0.4em]">{BRANDING.name}</p>
+        <p class="mt-2 text-[10px] uppercase tracking-widest">v{BRANDING.version}</p>
         <p class="mt-6 text-[10px] uppercase tracking-widest text-fg-subtle/60">
           // double-click an icon · or pick from start menu
         </p>

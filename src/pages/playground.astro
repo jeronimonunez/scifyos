@@ -17,9 +17,10 @@ import {
   Tabs,
   ToastDemo,
 } from "../components/Playground.tsx";
+import { pageTitle } from "../lib/branding";
 ---
 
-<Layout title="Playground · scifyos">
+<Layout title={pageTitle("Playground")}>
   <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> playground</h1>
   <p class="mt-2 text-fg-muted text-sm max-w-2xl">
     Interactive demos. Each widget below is a React island — the rest of the page is still static HTML.

@@ -5,13 +5,14 @@ import CRTToggle from "../components/CRTToggle.tsx";
 import CursorToggle from "../components/CursorToggle.tsx";
 import CursorReticle from "../components/CursorReticle.tsx";
 import CommandPalette from "../components/CommandPalette.tsx";
+import { BRANDING, pageTitle } from "../lib/branding";
 
 interface Props {
   title?: string;
   chrome?: "full" | "minimal" | "bare";
 }
 
-const { title = "scifyos · theme", chrome = "full" } = Astro.props;
+const { title = pageTitle("theme"), chrome = "full" } = Astro.props;
 
 const nav = [
   { href: "/", label: "OVERVIEW" },
@@ -71,7 +72,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
       <header class="border-b border-primary/40 bg-bg/80 backdrop-blur sticky top-0 z-20">
         <div class="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
           <a href="/" class="text-sm tracking-widest uppercase text-primary shrink-0">
-            <span class="text-fg-subtle">[</span>scifyos@theme<span class="text-fg-subtle">]</span>
+            <span class="text-fg-subtle">[</span>{BRANDING.pageChip}<span class="text-fg-subtle">]</span>
             <span class="text-fg-subtle">~$</span>
             <span class="caret"></span>
           </a>
@@ -125,7 +126,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
         <footer class="border-t border-primary/30">
           <div class="mx-auto max-w-5xl px-6 py-4 text-xs text-fg-subtle uppercase tracking-wider flex justify-between">
             <span>// tokens: src/styles/global.css</span>
-            <span>v0.1 · scifyos</span>
+            <span>v{BRANDING.versionShort} · {BRANDING.name}</span>
           </div>
         </footer>
       )}

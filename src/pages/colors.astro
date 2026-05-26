@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { pageTitle } from "../lib/branding";
 
 const groups = [
   {
@@ -37,7 +38,7 @@ const groups = [
 ];
 ---
 
-<Layout title="Colors · scifyos">
+<Layout title={pageTitle("Colors")}>
   <h1 class="text-3xl tracking-tight uppercase"><span class="text-fg-subtle">&gt;</span> colors</h1>
   <p class="mt-2 text-fg-muted text-sm">Defined as <span class="text-primary">--color-*</span> tokens in <span class="text-primary">global.css</span>.</p>
 

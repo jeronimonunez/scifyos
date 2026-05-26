@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BRANDING, PROMPT } from "../lib/branding";
 
 const SESSION_KEY = "scifyos-booted";
 const EXIT_MS = 520;
@@ -7,10 +8,10 @@ type Tone = "ok" | "fail" | "warn" | "default" | "banner";
 type BootLine = { text: string; tone?: Tone; pause?: number };
 
 const BOOT_LINES: BootLine[] = [
-  { text: "scifyos kernel v0.1.0-rc1 (root@scifyos)", tone: "banner", pause: 120 },
+  { text: `${BRANDING.name} kernel v${BRANDING.version} (${PROMPT})`, tone: "banner", pause: 120 },
   { text: "Copyright (c) 2026 jeronimo.nunez · all rights reserved", tone: "banner" },
   { text: "" },
-  { text: "[    0.000000] Booting scifyos...", pause: 90 },
+  { text: `[    0.000000] Booting ${BRANDING.name}...`, pause: 90 },
   { text: "[    0.000412] CPU: 8x Synthetic Xeon @ 4.4 GHz" },
   { text: "[    0.001209] Memory: 8192 MiB / 8192 MiB available" },
   { text: "[    0.001834] ACPI: Core revision 20240321" },
@@ -32,13 +33,13 @@ const BOOT_LINES: BootLine[] = [
   { text: "[  OK  ] Started Display Manager.", tone: "ok" },
   { text: "[  OK  ] Mounted /home", tone: "ok" },
   { text: "[  OK  ] Reached target Multi-User System.", tone: "ok" },
-  { text: "[  OK  ] Loaded /scifyos/services/window-manager.so", tone: "ok" },
-  { text: "[  OK  ] Loaded /scifyos/services/dock.so", tone: "ok" },
-  { text: "[  OK  ] Loaded /scifyos/services/desktop.so", tone: "ok" },
-  { text: "[  OK  ] Loaded /scifyos/services/terminal.so", tone: "ok" },
+  { text: `[  OK  ] Loaded ${BRANDING.servicesPath}/window-manager.so`, tone: "ok" },
+  { text: `[  OK  ] Loaded ${BRANDING.servicesPath}/dock.so`, tone: "ok" },
+  { text: `[  OK  ] Loaded ${BRANDING.servicesPath}/desktop.so`, tone: "ok" },
+  { text: `[  OK  ] Loaded ${BRANDING.servicesPath}/terminal.so`, tone: "ok" },
   { text: "[  OK  ] Started Greeter.", tone: "ok", pause: 200 },
   { text: "" },
-  { text: "scifyos ready · welcome, root", tone: "ok", pause: 320 },
+  { text: `${BRANDING.name} ready · welcome, ${BRANDING.user}`, tone: "ok", pause: 320 },
 ];
 
 function toneClass(tone?: Tone): string {
@@ -152,7 +153,7 @@ export default function BootScreen() {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Booting scifyos"
+      aria-label={`Booting ${BRANDING.name}`}
       className={`fixed inset-0 z-[200] bg-bg text-primary font-mono text-xs flex flex-col ${
         closing ? "boot-exit" : "boot-enter"
       }`}

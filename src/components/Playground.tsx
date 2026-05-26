@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { BRANDING, PROMPT } from "../lib/branding";
 
 export function Terminal() {
   const [lines, setLines] = useState<string[]>([
-    "scifyos v0.1 — type a command and press Enter.",
+    `${BRANDING.name} v${BRANDING.versionShort} — type a command and press Enter.`,
     "try: help, whoami, ls, clear",
   ]);
   const [value, setValue] = useState("");
@@ -23,7 +24,7 @@ export function Terminal() {
         out = "available: help, whoami, ls, date, clear";
         break;
       case "whoami":
-        out = "root@scifyos";
+        out = PROMPT;
         break;
       case "ls":
         out = "design.system  themes/  README.md";
@@ -290,7 +291,7 @@ const tabPanels = [
     label: "OVERVIEW",
     rows: [
       ["uptime", "47d 12h 03m"],
-      ["kernel", "scifyos 0.1.0-rc1"],
+      ["kernel", `${BRANDING.name} ${BRANDING.version}`],
       ["host", "mainframe.local"],
       ["users", "root, ada, neo"],
     ] as [string, string][],

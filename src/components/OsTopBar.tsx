@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import NotificationPanel from "./NotificationPanel";
+import { BRANDING } from "../lib/branding";
 import { PALETTE_OPEN_EVENT } from "./CommandPalette";
 
 function WifiIcon() {
@@ -73,7 +74,7 @@ export default function OsTopBar() {
           >
             <polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" />
           </svg>
-          scifyos
+          {BRANDING.name}
         </span>
         <nav className="hidden sm:flex items-center gap-3 text-fg-muted">
           {MENU_ITEMS.map((item) => (

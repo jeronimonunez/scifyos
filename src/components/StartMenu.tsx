@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { APPS, type AppId } from "../lib/apps";
+import { PROMPT } from "../lib/branding";
 import { WINDOW_OPEN_EVENT } from "./WindowManager";
 
 const MENU_APPS: AppId[] = [
@@ -79,7 +80,7 @@ export default function StartMenu() {
         >
           <div className="px-3 py-2 border-b border-primary/40 bg-primary/10 text-xs uppercase tracking-widest text-primary flex items-center justify-between">
             <span>// START</span>
-            <span className="text-fg-subtle text-[10px]">root@scifyos</span>
+            <span className="text-fg-subtle text-[10px]">{PROMPT}</span>
           </div>
           <ul className="flex flex-col text-xs">
             {MENU_APPS.map((id) => (

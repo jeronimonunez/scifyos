@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BRANDING } from "../lib/branding";
 
 type Notif = {
   id: string;
@@ -32,7 +33,7 @@ const SAMPLE_NOTIFS: Notif[] = [
   {
     id: "n4",
     title: "kernel update available",
-    body: "scifyos 0.1.1 ready · install via terminal: 'sudo reboot'",
+    body: `${BRANDING.name} 0.1.1 ready · install via terminal: 'sudo reboot'`,
     time: "1 hr ago",
   },
 ];
