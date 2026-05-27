@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { applyCRT, applyCursor, applyTheme } from "../lib/preferences";
+import { applyCRT, applyCursor, applySkin, applyTheme } from "../lib/preferences";
 import { BRANDING, PROMPT } from "../lib/branding";
 
 type LineKind = "input" | "output" | "info" | "error" | "primary" | "danger" | "ai";
@@ -244,6 +244,7 @@ const HELP_LINES: { cmd: string; desc: string }[] = [
   { cmd: "chat reset",    desc: "clear ai conversation history" },
   { cmd: "goto <page>",   desc: "navigate (home, colors, components, playground, terminal)" },
   { cmd: "theme <d|l>",   desc: "switch to dark or light theme" },
+  { cmd: "skin <name>",   desc: "switch visual skin (hacker, amber)" },
   { cmd: "crt <on|off>",  desc: "toggle CRT effect" },
   { cmd: "cursor <on|off>", desc: "toggle custom cursor" },
   { cmd: "breach",        desc: "trigger security breach" },
@@ -262,7 +263,7 @@ const HELP_LINES: { cmd: string; desc: string }[] = [
 const COMMAND_NAMES = [
   "help", "whoami", "pwd", "ls", "cat", "echo", "date", "uname", "history",
   "clear", "cls", "goto", "cd", "exit", "quit",
-  "theme", "crt", "cursor",
+  "theme", "skin", "crt", "cursor",
   "breach", "hacked", "glitch", "matrix", "slices", "pulse", "static",
   "cp", "copy",
   "ask", "chat",
@@ -272,6 +273,7 @@ const COMMAND_NAMES = [
 const FILE_NAMES = ["README.md", "config.json", ".scifyrc", "tokens.css"];
 const GOTO_NAMES = ["home", "overview", "colors", "typography", "components", "playground", "terminal", "os"];
 const THEME_NAMES = ["dark", "light"];
+const SKIN_NAMES = ["hacker", "amber"];
 const ONOFF_NAMES = ["on", "off"];
 const CHAT_SUBS = ["reset", "status", "history"];
 
@@ -303,6 +305,7 @@ function complete(input: string): { value: string; matches?: string[] } {
     if (cmd === "cat") candidates = FILE_NAMES;
     else if (cmd === "goto" || cmd === "cd") candidates = GOTO_NAMES;
     else if (cmd === "theme") candidates = THEME_NAMES;
+    else if (cmd === "skin") candidates = SKIN_NAMES;
     else if (cmd === "crt" || cmd === "cursor") candidates = ONOFF_NAMES;
     else if (cmd === "chat") candidates = CHAT_SUBS;
     else return { value: input };
@@ -640,6 +643,18 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
         }
         applyTheme(next);
         out.push({ kind: "info", text: `theme → ${next}` });
+        break;
+      }
+
+      case "skin": {
+        const a = args[0]?.toLowerCase();
+        const next = a === "hacker" ? "hacker" : a === "amber" ? "amber" : null;
+        if (!next) {
+          out.push({ kind: "error", text: "usage: skin <hacker|amber>" });
+          break;
+        }
+        applySkin(next);
+        out.push({ kind: "info", text: `skin → ${next}` });
         break;
       }
 

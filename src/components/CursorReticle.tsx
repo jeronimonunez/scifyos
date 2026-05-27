@@ -57,7 +57,8 @@ export default function CursorReticle() {
     const onMove = (e: PointerEvent) => {
       const node = ref.current;
       if (node) {
-        node.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+        // Top-left of the element is the hotspot (arrow tip at viewBox 0,0).
+        node.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
       const target = e.target as Element | null;
       const overText = !!target?.closest(TEXT_SELECTOR);
@@ -111,20 +112,17 @@ export default function CursorReticle() {
       aria-hidden="true"
     >
       <div className="cursor-reticle__inner">
-        <svg viewBox="0 0 32 32" width="32" height="32" fill="none">
-          <circle
-            cx="16"
-            cy="16"
-            r="9"
+        <svg viewBox="0 0 32 32" width="32" height="32">
+          {/* Tail-less arrow: dark fill + primary-colored stroke.
+              currentColor inherits the skin's primary;
+              fill pulls the skin's bg via CSS var. */}
+          <path
+            d="M 1 1 L 1 22 L 15 15 Z"
+            style={{ fill: "var(--color-bg)" }}
             stroke="currentColor"
-            strokeWidth="1"
-            opacity="0.55"
+            strokeWidth="2"
+            strokeLinejoin="miter"
           />
-          <circle cx="16" cy="16" r="1.5" fill="currentColor" />
-          <line x1="16" y1="2" x2="16" y2="5" stroke="currentColor" strokeWidth="1" />
-          <line x1="16" y1="27" x2="16" y2="30" stroke="currentColor" strokeWidth="1" />
-          <line x1="2" y1="16" x2="5" y2="16" stroke="currentColor" strokeWidth="1" />
-          <line x1="27" y1="16" x2="30" y2="16" stroke="currentColor" strokeWidth="1" />
         </svg>
       </div>
     </div>,

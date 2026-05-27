@@ -8,12 +8,15 @@ import { BRANDING } from "./branding";
 import {
   applyCRT,
   applyCursor,
+  applySkin,
   applyTheme,
   CRT_EVENT,
   CURSOR_EVENT,
+  SKIN_EVENT,
   THEME_EVENT,
   type CRTState,
   type CursorState,
+  type Skin,
   type Theme,
 } from "./preferences";
 
@@ -115,6 +118,12 @@ function AboutApp() {
 }
 
 function SettingsApp() {
+  const [skin, setLocalSkin] = useState<Skin>(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.skin === "amber"
+      ? "amber"
+      : "hacker",
+  );
   const [theme, setLocalTheme] = useState<Theme>(() =>
     typeof document !== "undefined" &&
     document.documentElement.dataset.theme === "light"
@@ -135,16 +144,20 @@ function SettingsApp() {
   );
 
   useEffect(() => {
+    const onSkin = (e: Event) =>
+      setLocalSkin((e as CustomEvent<Skin>).detail);
     const onTheme = (e: Event) =>
       setLocalTheme((e as CustomEvent<Theme>).detail);
     const onCRT = (e: Event) =>
       setLocalCRT((e as CustomEvent<CRTState>).detail);
     const onCursor = (e: Event) =>
       setLocalCursor((e as CustomEvent<CursorState>).detail);
+    window.addEventListener(SKIN_EVENT, onSkin);
     window.addEventListener(THEME_EVENT, onTheme);
     window.addEventListener(CRT_EVENT, onCRT);
     window.addEventListener(CURSOR_EVENT, onCursor);
     return () => {
+      window.removeEventListener(SKIN_EVENT, onSkin);
       window.removeEventListener(THEME_EVENT, onTheme);
       window.removeEventListener(CRT_EVENT, onCRT);
       window.removeEventListener(CURSOR_EVENT, onCursor);
@@ -153,6 +166,14 @@ function SettingsApp() {
 
   return (
     <div className="p-4 text-xs space-y-4">
+      <Row label="skin">
+        <Pill active={skin === "hacker"} onClick={() => applySkin("hacker")}>
+          HACKER
+        </Pill>
+        <Pill active={skin === "amber"} onClick={() => applySkin("amber")}>
+          AMBER
+        </Pill>
+      </Row>
       <Row label="theme">
         <Pill active={theme === "dark"} onClick={() => applyTheme("dark")}>
           DARK
@@ -225,5 +246,5 @@ export const APPS: Record<AppId, AppDef> = {
   logs: { id: "logs", title: "Logs", defaultWidth: 640, defaultHeight: 460, Component: LogsApp },
   shipcraft: { id: "shipcraft", title: "Shipcraft", defaultWidth: 820, defaultHeight: 560, Component: ShipcraftApp },
   about: { id: "about", title: "About", defaultWidth: 360, defaultHeight: 280, Component: AboutApp },
-  settings: { id: "settings", title: "Settings", defaultWidth: 380, defaultHeight: 240, Component: SettingsApp },
+  settings: { id: "settings", title: "Settings", defaultWidth: 380, defaultHeight: 280, Component: SettingsApp },
 };

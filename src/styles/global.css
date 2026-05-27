@@ -48,6 +48,124 @@
   --color-danger: oklch(0.55 0.25 25);
 }
 
+/* ─────────────────────────────────────────────────────────
+   Amber skin — phosphor-monitor / satellite-broadcast vibe.
+   Hue 85 = warm amber (slight orange lean).
+   Font + shadow refresh still to come.
+   ───────────────────────────────────────────────────────── */
+:root[data-skin="amber"] {
+  /* Surfaces */
+  --color-bg: oklch(0.06 0 0);
+  --color-bg-elevated: oklch(0.12 0.03 85);
+  --color-surface: oklch(0.16 0.04 85);
+  --color-border: oklch(0.55 0.14 85);
+
+  /* Foreground levels */
+  --color-fg: oklch(0.86 0.17 85);
+  --color-fg-muted: oklch(0.68 0.15 85);
+  --color-fg-subtle: oklch(0.50 0.12 85);
+
+  /* Brand */
+  --color-primary: oklch(0.86 0.17 85);
+  --color-primary-fg: oklch(0.06 0 0);
+  --color-accent: oklch(0.78 0.20 65);
+
+  /* Semantic — re-tuned so they read against the amber base
+     without losing their tonal meaning. */
+  --color-success: oklch(0.82 0.20 130);
+  --color-warning: oklch(0.82 0.18 70);
+  --color-danger: oklch(0.65 0.28 25);
+
+  /* Font — Roboto Mono. Cleaner geometric mono with good x-height
+     and lowercase legibility. */
+  --font-sans: "Roboto Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: "Roboto Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Reduced glow + tighter outline — broadcast monitor reads cleaner
+     than the hacker green halo. */
+  --shadow-glow: 0 0 0 1px color-mix(in oklch, var(--color-primary) 55%, transparent),
+                 0 0 8px -3px color-mix(in oklch, var(--color-primary) 25%, transparent);
+}
+
+/* Lighter, sparser scanlines for amber — broadcast monitor refresh
+   line rather than dense CRT phosphor weave. */
+:root[data-skin="amber"] body::before {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    color-mix(in oklch, var(--color-primary) 8%, transparent) 3px,
+    color-mix(in oklch, var(--color-primary) 8%, transparent) 4px
+  );
+  opacity: 0.5;
+}
+
+/* Amber finds the slow CRT sweep visually annoying — hide it.
+   Scanlines, flicker, and vignette still play. */
+:root[data-skin="amber"] .crt-overlay__sweep {
+  display: none;
+}
+
+/* Broadcast-style window header — solid primary fill with dark text,
+   a hard dark separator under it. Replaces the soft primary/10 tint
+   used by the hacker skin. The window frame border matches the
+   header fill so it reads as one continuous frame. */
+:root[data-skin="amber"] .window-frame {
+  border-color: var(--color-primary);
+}
+:root[data-skin="amber"] .window-titlebar {
+  background-color: var(--color-primary);
+  border-bottom-color: var(--color-bg);
+}
+:root[data-skin="amber"] .window-titlebar .window-title {
+  color: var(--color-primary-fg);
+}
+
+/* Window control buttons: hacker skin shows colored dots
+   (mac traffic lights). Amber swaps to Win95-style: dark
+   background, primary-colored × / − / + glyph, 1px border,
+   pushed to the right of the title bar with order: min, max, close. */
+.window-btn-symbol {
+  display: none;
+}
+:root[data-skin="amber"] .window-btn {
+  background-color: var(--color-bg);
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid color-mix(in oklch, var(--color-primary-fg) 50%, transparent);
+}
+:root[data-skin="amber"] .window-btn:hover {
+  background-color: var(--color-bg-elevated);
+}
+:root[data-skin="amber"] .window-btn-symbol {
+  display: inline-flex;
+  color: var(--color-primary);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Amber layout: title on the left, button group pushed to the right;
+   buttons reorder to minimize → maximize → close. Title reads as
+   normal-case bold (overriding the hacker skin's uppercase + tracking). */
+:root[data-skin="amber"] .window-titlebar .window-title {
+  margin-left: 0;
+  flex: 1;
+  min-width: 0;
+  order: 1;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+:root[data-skin="amber"] .window-titlebar > div:first-child {
+  order: 2;
+}
+:root[data-skin="amber"] .window-btn-min   { order: 1; }
+:root[data-skin="amber"] .window-btn-max   { order: 2; }
+:root[data-skin="amber"] .window-btn-close { order: 3; }
+
+
 @layer base {
   html {
     background: var(--color-bg);
@@ -117,7 +235,6 @@
     opacity: 0;
     transition: opacity 100ms ease-out;
     will-change: transform;
-    mix-blend-mode: difference;
   }
   .cursor-reticle[data-visible="true"] {
     opacity: 1;
@@ -127,6 +244,9 @@
     height: 100%;
     transition: transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
     transform: scale(1);
+    /* Tip of the arrow is at the top-left of the element; scale around
+       that so state changes don't slide the hotspot off the cursor. */
+    transform-origin: top left;
   }
   .cursor-reticle[data-state="interactive"] .cursor-reticle__inner {
     transform: scale(1.4);

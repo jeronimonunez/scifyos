@@ -32,6 +32,12 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap"
+    />
     <script is:inline>
       (() => {
         const root = document.documentElement;
@@ -52,6 +58,12 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
           root.dataset.cursor = c === "on" ? "on" : "off";
         } catch {
           root.dataset.cursor = "off";
+        }
+        try {
+          const s = localStorage.getItem("scifyos-skin");
+          root.dataset.skin = s === "amber" ? "amber" : "hacker";
+        } catch {
+          root.dataset.skin = "hacker";
         }
       })();
     </script>

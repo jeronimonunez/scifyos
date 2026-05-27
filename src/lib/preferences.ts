@@ -10,14 +10,18 @@
 export type Theme = "dark" | "light";
 export type CRTState = "on" | "off";
 export type CursorState = "on" | "off";
+/** Visual skin = palette + font choice. Independent of dark/light Theme. */
+export type Skin = "hacker" | "amber";
 
 export const THEME_EVENT = "scifyos:theme-change";
 export const CRT_EVENT = "scifyos:crt-change";
 export const CURSOR_EVENT = "scifyos:cursor-change";
+export const SKIN_EVENT = "scifyos:skin-change";
 
 const THEME_KEY = "scifyos-theme";
 const CRT_KEY = "scifyos-crt";
 const CURSOR_KEY = "scifyos-cursor";
+const SKIN_KEY = "scifyos-skin";
 
 export function applyTheme(theme: Theme): void {
   if (typeof document === "undefined") return;
@@ -48,4 +52,29 @@ export function applyCursor(state: CursorState): void {
   window.dispatchEvent(
     new CustomEvent<CursorState>(CURSOR_EVENT, { detail: state }),
   );
+}
+
+export function applySkin(skin: Skin): void {
+  if (typeof document === "undefined") return;
+  const prev = document.documentElement.dataset.skin;
+  const changing = prev !== undefined && prev !== "" && prev !== skin;
+
+  document.documentElement.dataset.skin = skin;
+  try {
+    localStorage.setItem(SKIN_KEY, skin);
+  } catch {}
+  window.dispatchEvent(new CustomEvent<Skin>(SKIN_EVENT, { detail: skin }));
+
+  // Different skins ship with different default window sizes (e.g. amber's
+  // larger metrics) and might want fresh icon layouts. Clear the persisted
+  // positions and reload so the new defaults take effect.
+  if (changing) {
+    try {
+      localStorage.removeItem("scifyos-os-window-positions");
+      localStorage.removeItem("scifyos-desktop-icons");
+    } catch {}
+    if (typeof location !== "undefined") {
+      location.reload();
+    }
+  }
 }

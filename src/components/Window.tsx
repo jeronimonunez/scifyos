@@ -90,7 +90,7 @@ export default function Window({
         display: win.minimized ? "none" : undefined,
         ...positionStyle,
       }}
-      className="window-enter flex flex-col border-2 border-primary/50 bg-bg-elevated text-fg shadow-[var(--shadow-glow)]"
+      className="window-frame window-enter flex flex-col border-2 border-primary/50 bg-bg-elevated text-fg shadow-[var(--shadow-glow)]"
       role="dialog"
       aria-label={win.title}
     >
@@ -98,7 +98,7 @@ export default function Window({
         onPointerDown={handleDragStart}
         onDoubleClick={handleDoubleClick}
         className={
-          "flex items-center gap-2 px-3 py-1.5 border-b border-primary/40 bg-primary/10 select-none shrink-0 touch-none " +
+          "window-titlebar flex items-center gap-2 px-3 py-1.5 border-b border-primary/40 bg-primary/10 select-none shrink-0 touch-none " +
           (win.maximized ? "cursor-default" : "cursor-move")
         }
       >
@@ -108,24 +108,30 @@ export default function Window({
             onClick={onClose}
             aria-label="Close window"
             title="Close"
-            className="size-3 bg-danger hover:bg-danger/70 transition-colors"
-          />
+            className="window-btn window-btn-close size-3 bg-danger hover:bg-danger/70 transition-colors flex items-center justify-center"
+          >
+            <span className="window-btn-symbol" aria-hidden="true">×</span>
+          </button>
           <button
             type="button"
             onClick={onMinimize}
             aria-label="Minimize window"
             title="Minimize"
-            className="size-3 bg-warning hover:bg-warning/70 transition-colors"
-          />
+            className="window-btn window-btn-min size-3 bg-warning hover:bg-warning/70 transition-colors flex items-center justify-center"
+          >
+            <span className="window-btn-symbol" aria-hidden="true">−</span>
+          </button>
           <button
             type="button"
             onClick={onMaximize}
             aria-label={win.maximized ? "Restore window" : "Maximize window"}
             title={win.maximized ? "Restore" : "Maximize"}
-            className="size-3 bg-success hover:bg-success/70 transition-colors"
-          />
+            className="window-btn window-btn-max size-3 bg-success hover:bg-success/70 transition-colors flex items-center justify-center"
+          >
+            <span className="window-btn-symbol" aria-hidden="true">+</span>
+          </button>
         </div>
-        <span className="ml-1 text-xs uppercase tracking-widest text-primary truncate">
+        <span className="window-title ml-1 text-xs uppercase tracking-widest text-primary truncate">
           {win.title}
         </span>
       </div>
