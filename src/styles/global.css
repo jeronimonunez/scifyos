@@ -459,6 +459,44 @@
     .boot-caret { animation: none; }
   }
 
+  /* Mail thread opens with a top-to-bottom scan reveal — feels like
+     a decoder writing the message onto the screen. */
+  @keyframes mail-detail-reveal {
+    0%   { clip-path: inset(0 0 100% 0); opacity: 0.6; }
+    100% { clip-path: inset(0 0 0    0); opacity: 1;   }
+  }
+  .mail-detail-enter {
+    animation: mail-detail-reveal 260ms ease-out both;
+  }
+
+  /* The user's reply lands with a slide-up + brief primary glow,
+     so they can see the outgoing message register. */
+  @keyframes mail-reply-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+      box-shadow: inset 3px 0 0 0 var(--color-primary);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(0);
+      box-shadow: inset 3px 0 0 0 var(--color-primary);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      box-shadow: inset 3px 0 0 0 transparent;
+    }
+  }
+  .mail-reply-enter {
+    animation: mail-reply-in 420ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mail-detail-enter,
+    .mail-reply-enter { animation: none; }
+  }
+
   /* Reactor pulse (Shipcraft / Engineering room). */
   @keyframes reactor-core-pulse {
     0%, 100% { r: 3.5; opacity: 1; }
@@ -480,6 +518,66 @@
   @media (prefers-reduced-motion: reduce) {
     .reactor-core,
     .reactor-halo { animation: none; }
+  }
+
+  /* Codebreaker grid row stream-in. Each row fades + slides from the
+     left with a brightness flash. Apply with a per-row animation-delay
+     for the staggered "loading the matrix" feel. */
+  @keyframes codebreaker-row-in {
+    0%   { opacity: 0; transform: translateX(-10px); filter: brightness(1.7); }
+    60%  { opacity: 1; transform: translateX(0);     filter: brightness(1.2); }
+    100% { opacity: 1; transform: translateX(0);     filter: brightness(1);   }
+  }
+  .codebreaker-row {
+    animation: codebreaker-row-in 240ms ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .codebreaker-row { animation: none; }
+  }
+
+  /* Lock badge shatter — plays when a folder transitions from locked to
+     unlocked. Scales up, shakes, brightens, then fades out. */
+  @keyframes lock-break {
+    0%   { transform: scale(1)   rotate(0);    opacity: 1;   filter: brightness(1);   }
+    20%  { transform: scale(1.15) rotate(-6deg); opacity: 1;  filter: brightness(1.5); }
+    40%  { transform: scale(1.15) rotate(6deg);  opacity: 1;  filter: brightness(2);   }
+    60%  { transform: scale(1.25) rotate(-3deg); opacity: 0.8; filter: brightness(2.4); }
+    100% { transform: scale(1.6)  rotate(0);    opacity: 0;   filter: brightness(2.4); }
+  }
+  .lock-breaking {
+    animation: lock-break 600ms ease-out forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lock-breaking { animation: none; opacity: 0; }
+  }
+
+  /* Bot dialog opens with a small slide-up + fade. */
+  @keyframes bot-dialog-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+  .bot-dialog-enter {
+    animation: bot-dialog-in 200ms ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bot-dialog-enter { animation: none; }
+  }
+
+  /* Briefly jiggle an OS window — used to signal a rejected action
+     (wrong password, locked operation, etc.) at the chrome level. */
+  @keyframes window-shake {
+    0%, 100% { transform: translateX(0); }
+    15%      { transform: translateX(-5px); }
+    30%      { transform: translateX(5px); }
+    45%      { transform: translateX(-4px); }
+    60%      { transform: translateX(4px); }
+    80%      { transform: translateX(-2px); }
+  }
+  .window-shake {
+    animation: window-shake 440ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .window-shake { animation: none; }
   }
 
   /* Shake the password dialog on a wrong password. */

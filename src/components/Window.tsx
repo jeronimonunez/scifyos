@@ -1,4 +1,9 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
+/** Any component inside a Window can fire this to make the containing
+ *  window jiggle briefly. detail.appId scopes the shake to one window;
+ *  omitted = every window shakes. */
+export const WINDOW_SHAKE_EVENT = "scifyos:window:shake";
 
 export type WindowState = {
   id: string;
@@ -35,6 +40,23 @@ export default function Window({
   children,
 }: Props) {
   const startRef = useRef({ winX: 0, winY: 0, mouseX: 0, mouseY: 0 });
+  const [shaking, setShaking] = useState(false);
+  /** Once the open animation has played once, drop the .window-enter
+   *  class so it can't replay if other animation classes are toggled
+   *  on/off later (e.g. shake on wrong password). */
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    const onShake = (e: Event) => {
+      const detail = (e as CustomEvent<{ appId?: string }>).detail;
+      if (detail?.appId && detail.appId !== win.appId) return;
+      setShaking(true);
+      const t = window.setTimeout(() => setShaking(false), 460);
+      return () => window.clearTimeout(t);
+    };
+    window.addEventListener(WINDOW_SHAKE_EVENT, onShake);
+    return () => window.removeEventListener(WINDOW_SHAKE_EVENT, onShake);
+  }, [win.appId]);
 
   const handleDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
     // Skip drag when clicking a button in the title bar (traffic lights).
@@ -90,7 +112,12 @@ export default function Window({
         display: win.minimized ? "none" : undefined,
         ...positionStyle,
       }}
-      className="window-frame window-enter flex flex-col border-2 border-primary/50 bg-bg-elevated text-fg shadow-[var(--shadow-glow)]"
+      onAnimationEnd={(e) => {
+        if (e.animationName === "window-in") setEntered(true);
+      }}
+      className={`window-frame flex flex-col border-2 border-primary/50 bg-bg-elevated text-fg shadow-[var(--shadow-glow)] ${
+        entered ? "" : "window-enter"
+      } ${shaking ? "window-shake" : ""}`}
       role="dialog"
       aria-label={win.title}
     >

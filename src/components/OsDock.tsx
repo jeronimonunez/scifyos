@@ -70,6 +70,46 @@ function BoxIcon() {
   );
 }
 
+function ExplorerIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="miter"
+      strokeLinecap="square"
+      className="size-7"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" />
+      <line x1="3" y1="8" x2="21" y2="8" />
+      <rect x="6" y="11" width="4" height="4" fill="currentColor" />
+      <rect x="14" y="11" width="4" height="4" />
+      <rect x="6" y="17" width="4" height="2" />
+      <rect x="14" y="17" width="4" height="2" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="miter"
+      strokeLinecap="square"
+      className="size-7"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" />
+      <polyline points="3,5 12,13 21,5" />
+    </svg>
+  );
+}
+
 function LogsIcon() {
   return (
     <svg
@@ -190,7 +230,9 @@ function CogIcon() {
 const DOCK_APPS: DockApp[] = [
   { id: "terminal",   label: "Terminal",   appId: "terminal",   icon: <TerminalIcon /> },
   { id: "files",      label: "Files",      appId: "files",      icon: <FolderIcon /> },
+  { id: "explorer",   label: "Explorer",   appId: "explorer",   icon: <ExplorerIcon /> },
   { id: "logs",       label: "Logs",       appId: "logs",       icon: <LogsIcon /> },
+  { id: "mail",       label: "Mail",       appId: "mail",       icon: <MailIcon /> },
   { id: "shipcraft",  label: "Shipcraft",  appId: "shipcraft",  icon: <ShipIcon /> },
   { id: "components", label: "Components", appId: "components", icon: <BoxIcon /> },
   { id: "playground", label: "Playground", appId: "playground", icon: <PlayIcon /> },

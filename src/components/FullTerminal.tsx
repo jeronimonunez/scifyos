@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { applyCRT, applyCursor, applySkin, applyTheme } from "../lib/preferences";
 import { BRANDING, PROMPT } from "../lib/branding";
+import {
+  FOLDER_PASSWORD,
+  FS_ROOT,
+  type FileNode,
+  type FolderNode,
+} from "../data/explorer-fs";
+import {
+  addUnlocked,
+  EXPLORER_UNLOCK_EVENT,
+  loadUnlocked,
+} from "../lib/explorerUnlock";
+import { useNavAudio } from "../lib/useNavAudio";
+import { WINDOW_SHAKE_EVENT } from "./Window";
 
 type LineKind = "input" | "output" | "info" | "error" | "primary" | "danger" | "ai";
 type Line = { kind: LineKind; text: string; prompt?: string };
@@ -218,21 +231,67 @@ const FILES: Record<string, string[]> = {
   ],
 };
 
-const LS_OUTPUT = [
-  "drwxr-xr-x  root  4.0K  design.system/",
-  "drwxr-xr-x  root  4.0K  themes/",
-  "-rw-r--r--  root  1.0K  README.md",
-  "-rw-r--r--  root  512B  config.json",
-  "-rw-r--r--  root  1.8K  tokens.css",
-  "-rw-------  root  256B  .scifyrc",
-];
+// ─────────────────────────────────────────────────────────
+// Filesystem helpers — walk + format against the Explorer's
+// FS_ROOT so `ls` / `cd` / `pwd` / `cat` operate on the same
+// data the Explorer app shows.
+// ─────────────────────────────────────────────────────────
+
+function walkCwd(cwd: string[]): FolderNode {
+  let current: FolderNode = FS_ROOT;
+  for (const id of cwd) {
+    const next = current.children.find((c) => c.id === id);
+    if (!next || next.type !== "folder") return FS_ROOT;
+    current = next;
+  }
+  return current;
+}
+
+function findChild(folder: FolderNode, name: string): FileNode | undefined {
+  const cleaned = name.replace(/\/$/, "").toLowerCase();
+  return folder.children.find((c) => c.name.toLowerCase() === cleaned);
+}
+
+function formatSize(node: FileNode): string {
+  let n = 0;
+  if (node.type === "text") n = node.content.length;
+  else if (node.type === "image") n = 12_000; // fake-binary placeholder
+  else if (node.type === "sound") {
+    n = node.tones.reduce((s, t) => s + (t.durMs + (t.gapMs ?? 0)) * 8, 0);
+  } else {
+    return "  4.0K";
+  }
+  return n < 1024 ? `${n}B`.padStart(6) : `${(n / 1024).toFixed(1)}K`.padStart(6);
+}
+
+function lsLine(node: FileNode): string {
+  const locked = node.type === "folder" && !!node.passwordProtected;
+  const perms =
+    node.type === "folder" ? (locked ? "drwx------" : "drwxr-xr-x") : "-rw-r--r--";
+  const name = node.type === "folder" ? `${node.name}/` : node.name;
+  const tail = locked ? "    [locked]" : "";
+  return `${perms}  root  ${formatSize(node)}  ${name}${tail}`;
+}
+
+function pwdString(cwd: string[]): string {
+  let current: FolderNode = FS_ROOT;
+  const names: string[] = [];
+  for (const id of cwd) {
+    const next = current.children.find((c) => c.id === id);
+    if (!next || next.type !== "folder") break;
+    names.push(next.name);
+    current = next;
+  }
+  return "/" + [FS_ROOT.name, ...names].join("/");
+}
 
 const HELP_LINES: { cmd: string; desc: string }[] = [
   { cmd: "help",          desc: "show this list" },
   { cmd: "whoami",        desc: "current user" },
   { cmd: "pwd",           desc: "working directory" },
-  { cmd: "ls",            desc: "list files in /scifyos" },
-  { cmd: "cat <file>",    desc: "show a file (README.md, config.json, .scifyrc, tokens.css)" },
+  { cmd: "ls",            desc: "list contents of the current folder" },
+  { cmd: "cd <dir>",      desc: "change folder (.. = up, ~ = home)" },
+  { cmd: "cat <file>",    desc: "print a text file" },
   { cmd: "echo <text>",   desc: "print arguments back" },
   { cmd: "date",          desc: "system date" },
   { cmd: "uname",         desc: "system info" },
@@ -256,13 +315,14 @@ const HELP_LINES: { cmd: string; desc: string }[] = [
   { cmd: "static",        desc: "audio static" },
   { cmd: "cp",            desc: "win95-style file copy modal (alias: copy)" },
   { cmd: "clear",         desc: "clear screen" },
+  { cmd: "clearcache",    desc: "wipe scifyos local/session storage + reload (dev)" },
   { cmd: "exit",          desc: "return to /" },
 ];
 
 // Tab-completion data
 const COMMAND_NAMES = [
   "help", "whoami", "pwd", "ls", "cat", "echo", "date", "uname", "history",
-  "clear", "cls", "goto", "cd", "exit", "quit",
+  "clear", "cls", "clearcache", "goto", "cd", "exit", "quit",
   "theme", "skin", "crt", "cursor",
   "breach", "hacked", "glitch", "matrix", "slices", "pulse", "static",
   "cp", "copy",
@@ -270,7 +330,6 @@ const COMMAND_NAMES = [
   "sudo", "rm", "vim", "emacs", "nano",
 ];
 
-const FILE_NAMES = ["README.md", "config.json", ".scifyrc", "tokens.css"];
 const GOTO_NAMES = ["home", "overview", "colors", "typography", "components", "playground", "terminal", "os"];
 const THEME_NAMES = ["dark", "light"];
 const SKIN_NAMES = ["hacker", "amber"];
@@ -292,7 +351,7 @@ function longestCommonPrefix(strs: string[]): string {
   return prefix;
 }
 
-function complete(input: string): { value: string; matches?: string[] } {
+function complete(input: string, cwd: string[]): { value: string; matches?: string[] } {
   const parts = input.split(" ");
   const lastIdx = parts.length - 1;
   const partial = parts[lastIdx];
@@ -302,8 +361,13 @@ function complete(input: string): { value: string; matches?: string[] } {
     candidates = COMMAND_NAMES;
   } else {
     const cmd = parts[0].toLowerCase();
-    if (cmd === "cat") candidates = FILE_NAMES;
-    else if (cmd === "goto" || cmd === "cd") candidates = GOTO_NAMES;
+    if (cmd === "ls" || cmd === "cat") {
+      candidates = walkCwd(cwd).children.map((c) => c.name);
+    } else if (cmd === "cd") {
+      candidates = walkCwd(cwd)
+        .children.filter((c) => c.type === "folder")
+        .map((c) => c.name);
+    } else if (cmd === "goto") candidates = GOTO_NAMES;
     else if (cmd === "theme") candidates = THEME_NAMES;
     else if (cmd === "skin") candidates = SKIN_NAMES;
     else if (cmd === "crt" || cmd === "cursor") candidates = ONOFF_NAMES;
@@ -401,6 +465,20 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
   const [chatMode, setChatMode] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiHistory, setAiHistory] = useState<ChatMessage[]>(loadAiHistory);
+  /** Folder ids from FS_ROOT downward. Empty = at root. */
+  const [cwd, setCwd] = useState<string[]>([]);
+  /** Folder ids unlocked this session — shared with the Explorer via
+   *  the explorerUnlock module. */
+  const [unlockedFolders, setUnlockedFolders] = useState<Set<string>>(
+    loadUnlocked,
+  );
+  const audio = useNavAudio();
+  /** When set, the next submitted input is treated as a password attempt
+   *  for this folder rather than a shell command. */
+  const [awaitingPwd, setAwaitingPwd] = useState<{
+    folderId: string;
+    folderName: string;
+  } | null>(null);
 
   // Persist history across reloads, capped at MAX_HISTORY most-recent entries.
   useEffect(() => {
@@ -430,6 +508,14 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
+
+  // Sync unlocked folders from sessionStorage when the Explorer (or
+  // another terminal instance) authenticates a folder.
+  useEffect(() => {
+    const onSync = () => setUnlockedFolders(loadUnlocked());
+    window.addEventListener(EXPLORER_UNLOCK_EVENT, onSync);
+    return () => window.removeEventListener(EXPLORER_UNLOCK_EVENT, onSync);
+  }, []);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -476,6 +562,35 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
   };
 
   const run = (raw: string) => {
+    // Password-prompt mode: the next submission is a password attempt for
+    // a locked folder. Don't echo the secret to the scrollback.
+    if (awaitingPwd) {
+      const target = awaitingPwd;
+      setAwaitingPwd(null);
+      append([{ kind: "input", text: "•".repeat(raw.length), prompt: "password:" }]);
+      if (raw === FOLDER_PASSWORD) {
+        // Writes sessionStorage + dispatches EXPLORER_UNLOCK_EVENT;
+        // the effect above refreshes local state, and the Explorer
+        // picks up the same event.
+        addUnlocked(target.folderId);
+        setCwd((prev) => [...prev, target.folderId]);
+        append([
+          { kind: "info", text: `→ ${target.folderName}/ · unlocked` },
+        ]);
+      } else {
+        audio.denied();
+        window.dispatchEvent(
+          new CustomEvent(WINDOW_SHAKE_EVENT, {
+            detail: { appId: "terminal" },
+          }),
+        );
+        append([
+          { kind: "error", text: `access denied · invalid password` },
+        ]);
+      }
+      return;
+    }
+
     // Chat mode: echo with ? prompt, route to AI unless it's a slash command.
     if (chatMode) {
       append([{ kind: "input", text: raw, prompt: "?" }]);
@@ -528,6 +643,30 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
         setLines([]);
         return;
 
+      case "clearcache": {
+        const keys = ["localStorage", "sessionStorage"] as const;
+        let removed = 0;
+        for (const which of keys) {
+          const store = which === "localStorage" ? localStorage : sessionStorage;
+          // Only scifyos-prefixed keys, leave any third-party storage alone.
+          const toDel: string[] = [];
+          for (let i = 0; i < store.length; i++) {
+            const k = store.key(i);
+            if (k && k.startsWith("scifyos-")) toDel.push(k);
+          }
+          for (const k of toDel) store.removeItem(k);
+          removed += toDel.length;
+        }
+        out.push({
+          kind: "primary",
+          text: `▸ cleared ${removed} scifyos-* keys from local + session storage`,
+        });
+        out.push({ kind: "info", text: "reloading…" });
+        setLines((p) => [...p, ...out]);
+        window.setTimeout(() => window.location.reload(), 600);
+        return;
+      }
+
       case "help":
         out.push({ kind: "primary", text: "AVAILABLE COMMANDS:" });
         for (const h of HELP_LINES) {
@@ -540,12 +679,20 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
         break;
 
       case "pwd":
-        out.push({ kind: "output", text: `/dev/${BRANDING.hostname}/terminal` });
+        out.push({ kind: "output", text: pwdString(cwd) });
         break;
 
-      case "ls":
-        for (const line of LS_OUTPUT) out.push({ kind: "output", text: line });
+      case "ls": {
+        const folder = walkCwd(cwd);
+        if (folder.children.length === 0) {
+          out.push({ kind: "info", text: "(empty)" });
+          break;
+        }
+        for (const child of folder.children) {
+          out.push({ kind: "output", text: lsLine(child) });
+        }
         break;
+      }
 
       case "date":
         out.push({ kind: "output", text: new Date().toString() });
@@ -583,18 +730,76 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
           out.push({ kind: "error", text: "usage: cat <file>" });
           break;
         }
-        const file = args[0].toLowerCase();
-        const content = FILES[file];
-        if (!content) {
+        const folder = walkCwd(cwd);
+        const child = findChild(folder, args[0]);
+        if (!child) {
           out.push({ kind: "error", text: `cat: ${args[0]}: no such file` });
           break;
         }
-        for (const line of content) out.push({ kind: "output", text: line });
+        if (child.type === "folder") {
+          out.push({ kind: "error", text: `cat: ${args[0]}: is a directory` });
+          break;
+        }
+        if (child.type === "text") {
+          for (const line of child.content.split("\n")) {
+            out.push({ kind: "output", text: line });
+          }
+          break;
+        }
+        if (child.type === "image") {
+          out.push({
+            kind: "info",
+            text: `[binary image · ${child.name} · open in explorer to view]`,
+          });
+          break;
+        }
+        if (child.type === "sound") {
+          out.push({
+            kind: "info",
+            text: `[binary audio · ${child.name} · ${child.tones.length} tones · open in explorer to play]`,
+          });
+          break;
+        }
         break;
       }
 
-      case "goto":
       case "cd": {
+        const target = args[0];
+        if (!target || target === "~" || target === "/") {
+          setCwd([]);
+          out.push({ kind: "info", text: "→ /" });
+          break;
+        }
+        if (target === "..") {
+          setCwd((prev) => prev.slice(0, -1));
+          out.push({ kind: "info", text: "→ .." });
+          break;
+        }
+        const folder = walkCwd(cwd);
+        const child = findChild(folder, target);
+        if (!child) {
+          out.push({ kind: "error", text: `cd: ${target}: no such file or directory` });
+          break;
+        }
+        if (child.type !== "folder") {
+          out.push({ kind: "error", text: `cd: ${target}: not a directory` });
+          break;
+        }
+        if (child.passwordProtected && !unlockedFolders.has(child.id)) {
+          // Defer cd until the next input — treat it as a password attempt.
+          setAwaitingPwd({ folderId: child.id, folderName: child.name });
+          out.push({
+            kind: "info",
+            text: `password required for ${child.name}/ · enter (or esc to cancel)`,
+          });
+          break;
+        }
+        setCwd((prev) => [...prev, child.id]);
+        out.push({ kind: "info", text: `→ ${child.name}/` });
+        break;
+      }
+
+      case "goto": {
         const dest = args[0]?.toLowerCase();
         const url = dest ? ROUTES[dest] : undefined;
         if (!url) {
@@ -815,6 +1020,13 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
   };
 
   const onKey = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (awaitingPwd && e.key === "Escape") {
+      e.preventDefault();
+      setAwaitingPwd(null);
+      setValue("");
+      append([{ kind: "info", text: "cancelled." }]);
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       run(value);
@@ -852,7 +1064,8 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
     }
     if (e.key === "Tab") {
       e.preventDefault();
-      const result = complete(value);
+      if (awaitingPwd) return;
+      const result = complete(value, cwd);
       setValue(result.value);
       if (result.matches) {
         // Multiple candidates at the common prefix — list them, leave input as-is.
@@ -914,9 +1127,12 @@ export default function FullTerminal({ embedded = false }: FullTerminalProps = {
           setValue("");
         }}
       >
-        <span className="px-6 text-primary">{chatMode ? "?" : "$"}</span>
+        <span className="px-6 text-primary">
+          {awaitingPwd ? "password:" : chatMode ? "?" : "$"}
+        </span>
         <input
           ref={inputRef}
+          type={awaitingPwd ? "password" : "text"}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKey}

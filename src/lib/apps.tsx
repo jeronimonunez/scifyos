@@ -1,8 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import FullTerminal from "../components/FullTerminal";
 import FileTree from "../components/FileTree";
+import ExplorerApp from "../components/ExplorerApp";
 import HackingApp from "../components/HackingApp";
 import LogsApp from "../components/LogsApp";
+import MailApp from "../components/MailApp";
 import ShipcraftApp from "../components/ShipcraftApp";
 import { BRANDING } from "./branding";
 import {
@@ -23,10 +25,12 @@ import {
 export type AppId =
   | "terminal"
   | "files"
+  | "explorer"
   | "components"
   | "playground"
   | "hacking"
   | "logs"
+  | "mail"
   | "shipcraft"
   | "about"
   | "settings";
@@ -240,10 +244,12 @@ function Pill({
 export const APPS: Record<AppId, AppDef> = {
   terminal: { id: "terminal", title: "Terminal", defaultWidth: 600, defaultHeight: 400, Component: TerminalApp },
   files: { id: "files", title: "Files", defaultWidth: 720, defaultHeight: 460, Component: FilesApp },
+  explorer: { id: "explorer", title: "Explorer", defaultWidth: 760, defaultHeight: 520, Component: ExplorerApp },
   components: { id: "components", title: "Components", defaultWidth: 400, defaultHeight: 300, Component: ComponentsApp },
   playground: { id: "playground", title: "Playground", defaultWidth: 400, defaultHeight: 220, Component: PlaygroundApp },
-  hacking: { id: "hacking", title: "Hacking", defaultWidth: 760, defaultHeight: 540, Component: HackingApp, passwordProtected: true },
+  hacking: { id: "hacking", title: "Hacking", defaultWidth: 960, defaultHeight: 720, Component: HackingApp, passwordProtected: true },
   logs: { id: "logs", title: "Logs", defaultWidth: 640, defaultHeight: 460, Component: LogsApp },
+  mail: { id: "mail", title: "Mail", defaultWidth: 820, defaultHeight: 560, Component: MailApp },
   shipcraft: { id: "shipcraft", title: "Shipcraft", defaultWidth: 820, defaultHeight: 560, Component: ShipcraftApp },
   about: { id: "about", title: "About", defaultWidth: 360, defaultHeight: 280, Component: AboutApp },
   settings: { id: "settings", title: "Settings", defaultWidth: 380, defaultHeight: 280, Component: SettingsApp },

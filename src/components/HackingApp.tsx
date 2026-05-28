@@ -8,6 +8,30 @@ import { useEffect, useRef, useState } from "react";
 
 type ToolId = "scanner" | "cracker" | "decrypt" | "exploit" | "botnet";
 
+// ─────────────────────────────────────────────────────────
+// Cross-app request — other apps call requestCrack() to push
+// a target into Codebreaker. Dispatches the request event AND
+// stores a module-level pending target that survives the
+// password-prompt round-trip (read by HackingApp on mount).
+// ─────────────────────────────────────────────────────────
+
+export const HACKING_REQUEST_EVENT = "scifyos:hacking:request";
+
+let pendingTarget: CrackTarget | null = null;
+
+export function requestCrack(target: CrackTarget): void {
+  pendingTarget = target;
+  window.dispatchEvent(
+    new CustomEvent<CrackTarget>(HACKING_REQUEST_EVENT, { detail: target }),
+  );
+}
+
+function consumePendingTarget(): CrackTarget | null {
+  const t = pendingTarget;
+  pendingTarget = null;
+  return t;
+}
+
 const TOOLS: { id: ToolId; label: string }[] = [
   { id: "scanner", label: "scanner" },
   { id: "cracker", label: "cracker" },
@@ -18,6 +42,30 @@ const TOOLS: { id: ToolId; label: string }[] = [
 
 export default function HackingApp() {
   const [activeTool, setActiveTool] = useState<ToolId>("scanner");
+  const [crackerTarget, setCrackerTarget] =
+    useState<CrackTarget>(SELF_TEST_TARGET);
+
+  // Apply pending request set before mount (e.g. from another app while
+  // the password-prompt was on screen).
+  useEffect(() => {
+    const t = consumePendingTarget();
+    if (t) {
+      setCrackerTarget(t);
+      setActiveTool("cracker");
+    }
+  }, []);
+
+  // Apply live requests while already open.
+  useEffect(() => {
+    const onRequest = (e: Event) => {
+      const target = (e as CustomEvent<CrackTarget>).detail;
+      if (!target) return;
+      setCrackerTarget(target);
+      setActiveTool("cracker");
+    };
+    window.addEventListener(HACKING_REQUEST_EVENT, onRequest);
+    return () => window.removeEventListener(HACKING_REQUEST_EVENT, onRequest);
+  }, []);
 
   return (
     <div className="flex flex-col h-full text-xs">
@@ -59,7 +107,7 @@ export default function HackingApp() {
           <ScannerTool />
         </div>
         <div className={activeTool === "cracker" ? "" : "hidden"}>
-          <CrackerTool />
+          <CrackerTool target={crackerTarget} />
         </div>
         <div className={activeTool === "decrypt" ? "" : "hidden"}>
           <DecryptTool />
@@ -180,107 +228,432 @@ function ScannerTool() {
    progressively left-to-right.
    ───────────────────────────────────────────────────── */
 
-const FAKE_PASSWORDS = [
-  "hunter2",
-  "qwerty123",
-  "letmein",
-  "password1",
-  "admin",
-  "iloveyou",
-  "12345678",
-  "scifyos",
-  "0day!",
-  "root",
-  "neo1999",
+// ─────────────────────────────────────────────────────────
+// Codebreaker — Fallout-style password puzzle. Procedural
+// generation per attempt. Click a word to guess; similarity
+// index reveals how many characters match by position.
+// Find matched bracket pairs in the hex noise to either
+// remove a dud word or restore an attempt.
+//
+// Pass 1: standalone "self-test" target. Pass 2+ will accept
+// real targets (folders, doors, encrypted mail) via props.
+// ─────────────────────────────────────────────────────────
+
+export const HACKING_CRACKED_EVENT = "scifyos:hacking:cracked";
+export const HACKING_FAILED_EVENT = "scifyos:hacking:failed";
+
+export type CrackTarget = {
+  /** "folder" | "door" | "email" | "self-test" — free-form for the game. */
+  kind: string;
+  id: string;
+  /** Display string shown in the header (e.g. "classified/"). */
+  name: string;
+  difficulty?: number; // 1-5; defaults to 2
+};
+
+const SELF_TEST_TARGET: CrackTarget = {
+  kind: "self-test",
+  id: "demo",
+  name: "demo network node",
+  difficulty: 2,
+};
+
+const WORDS_BY_LENGTH: Record<number, string[]> = {
+  5: ["AUDIT","BURST","CACHE","CODES","DELTA","ENTRY","EXFIL","FORGE","GHOST","HEIST","INPUT","LATCH","LOGIC","NOISE","PROBE","QUERY","ROUTE","SHELL","SHARD","SPARK","STACK","TOKEN","TRACE","VAULT","WIRED","XENON"],
+  6: ["BINARY","BREACH","CIPHER","DAEMON","DOMAIN","ENCODE","ENGINE","GLITCH","HACKER","IMPORT","INJECT","KERNEL","MASKED","OBJECT","OUTPUT","PACKET","RECORD","SOCKET","STREAM","TARGET","TUNNEL","UPLOAD","VECTOR","WIDGET"],
+  7: ["AIRLOCK","CENTRAL","CHANNEL","CRACKED","DECRYPT","ENCRYPT","EXPLOIT","GATEWAY","HARNESS","INSIDER","MISSILE","NETWORK","PRIVATE","PROCESS","QUARTER","RECORDS","ROUTING","SECTION","TRACKED","UPGRADE"],
+  8: ["BACKDOOR","COVERAGE","DATABASE","FIREWALL","IDENTITY","INTRUDER","LAUNCHER","OBSERVER","OVERRIDE","PATTERNS","PHANTOMS","REGISTRY","SCRIPTED","SECURED!","ULTIMATE"],
+  9: ["BANDWIDTH","BLUEPRINT","COMMANDER","ENCRYPTED","FILESHARE","FIREWALLS","FRAMEWORK","INTRUDERS","NETWORKED","OVERWRITE","PASSWORDS","PROCESSED","QUARTERED","STRUCTURE","SUSPECTED"],
+};
+
+const NOISE_CHARS = "0123456789ABCDEF.:|/\\!@#$%^&*-+=~";
+const BRACKET_PAIRS = [
+  { open: "[", close: "]" },
+  { open: "{", close: "}" },
+  { open: "(", close: ")" },
+  { open: "<", close: ">" },
 ];
 
-const CRACK_CHARS =
-  "abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+const GRID_ROWS = 16;
+const GRID_COLS = 24;
+const BASE_ADDR = 0xF4A8;
 
-function pickFakePassword(): string {
-  return FAKE_PASSWORDS[Math.floor(Math.random() * FAKE_PASSWORDS.length)];
+type CellKind = "noise" | "word" | "bracket";
+
+type Cell = {
+  char: string;
+  kind: CellKind;
+  /** When kind=word: which word string this cell belongs to. */
+  word?: string;
+  /** When kind=bracket: shared id between open and close cells. */
+  bracketId?: string;
+};
+
+type Puzzle = {
+  answer: string;
+  words: string[];
+  attempts: number;
+  grid: Cell[][];
+  /** Unique per generation — used as a key on the grid container so each
+   *  new puzzle replays the reveal animation. */
+  nonce: number;
+};
+
+function randNoise(): string {
+  return NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
 }
 
-function CrackerTool() {
-  const [target, setTarget] = useState("root@10.0.0.42");
-  const [cracking, setCracking] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [attempt, setAttempt] = useState("");
-  const [result, setResult] = useState<string | null>(null);
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  const startCrack = async () => {
-    if (cracking) return;
-    setCracking(true);
-    setProgress(0);
-    setResult(null);
+function generatePuzzle(difficulty: number): Puzzle {
+  const d = Math.max(1, Math.min(5, difficulty));
+  const wordLength = 4 + d;                    // 5–9
+  const wordCount = 6 + d * 2;                 // 8–16
+  const attempts = Math.max(3, 5 - Math.floor((d - 1) / 2));
 
-    const finalPassword = pickFakePassword();
-    const totalSteps = 40;
+  const pool = WORDS_BY_LENGTH[wordLength] ?? WORDS_BY_LENGTH[6];
+  const words = shuffle(pool).slice(0, Math.min(wordCount, pool.length));
+  const answer = words[Math.floor(Math.random() * words.length)];
 
-    for (let step = 0; step <= totalSteps; step++) {
-      const pct = Math.round((step / totalSteps) * 100);
-      setProgress(pct);
-      const lockedCount = Math.floor((step / totalSteps) * finalPassword.length);
-      const locked = finalPassword.slice(0, lockedCount);
-      const remaining = finalPassword.length - lockedCount;
-      const random = Array.from({ length: remaining }, () =>
-        CRACK_CHARS[Math.floor(Math.random() * CRACK_CHARS.length)],
-      ).join("");
-      setAttempt(locked + random);
-      await new Promise((r) => setTimeout(r, 60 + Math.random() * 70));
+  // Fill grid with noise.
+  const grid: Cell[][] = [];
+  for (let r = 0; r < GRID_ROWS; r++) {
+    const row: Cell[] = [];
+    for (let c = 0; c < GRID_COLS; c++) {
+      row.push({ char: randNoise(), kind: "noise" });
+    }
+    grid.push(row);
+  }
+
+  const isFreeRange = (r: number, c0: number, c1: number) => {
+    for (let c = c0; c <= c1; c++) {
+      if (grid[r][c].kind !== "noise") return false;
+    }
+    return true;
+  };
+
+  // Place each word at a random row + column.
+  for (const word of words) {
+    let placed = false;
+    for (let tries = 0; tries < 80 && !placed; tries++) {
+      const r = Math.floor(Math.random() * GRID_ROWS);
+      const c0 = Math.floor(Math.random() * (GRID_COLS - word.length));
+      const c1 = c0 + word.length - 1;
+      if (!isFreeRange(r, c0, c1)) continue;
+      for (let i = 0; i < word.length; i++) {
+        grid[r][c0 + i] = { char: word[i], kind: "word", word };
+      }
+      placed = true;
+    }
+  }
+
+  // Place 4 bracket pairs (open + close on the same row).
+  for (let i = 0; i < 4; i++) {
+    const pair = BRACKET_PAIRS[i % BRACKET_PAIRS.length];
+    const bracketId = `b-${i}`;
+    for (let tries = 0; tries < 60; tries++) {
+      const r = Math.floor(Math.random() * GRID_ROWS);
+      const cOpen = Math.floor(Math.random() * (GRID_COLS - 4));
+      const cClose = cOpen + 2 + Math.floor(Math.random() * (GRID_COLS - cOpen - 3));
+      if (cClose >= GRID_COLS) continue;
+      if (grid[r][cOpen].kind !== "noise") continue;
+      if (grid[r][cClose].kind !== "noise") continue;
+      grid[r][cOpen] = { char: pair.open, kind: "bracket", bracketId };
+      grid[r][cClose] = { char: pair.close, kind: "bracket", bracketId };
+      break;
+    }
+  }
+
+  return { answer, words, attempts, grid, nonce: Date.now() + Math.random() };
+}
+
+function similarityIndex(guess: string, answer: string): number {
+  let n = 0;
+  const len = Math.min(guess.length, answer.length);
+  for (let i = 0; i < len; i++) if (guess[i] === answer[i]) n++;
+  return n;
+}
+
+type GuessLog = { word: string; similarity: number };
+
+function CrackerTool({ target }: { target: CrackTarget }) {
+  const [difficulty, setDifficulty] = useState<number>(target.difficulty ?? 2);
+  const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle(difficulty));
+  const [attemptsLeft, setAttemptsLeft] = useState<number>(puzzle.attempts);
+  const [guesses, setGuesses] = useState<GuessLog[]>([]);
+  const [removed, setRemoved] = useState<Set<string>>(new Set());
+  const [usedBrackets, setUsedBrackets] = useState<Set<string>>(new Set());
+  const [status, setStatus] = useState<"playing" | "won" | "lost">("playing");
+  const [hoverWord, setHoverWord] = useState<string | null>(null);
+  const [hoverBracket, setHoverBracket] = useState<string | null>(null);
+  const [bracketLog, setBracketLog] = useState<string[]>([]);
+
+  const reset = (nextDiff?: number) => {
+    const d = nextDiff ?? difficulty;
+    const p = generatePuzzle(d);
+    setDifficulty(d);
+    setPuzzle(p);
+    setAttemptsLeft(p.attempts);
+    setGuesses([]);
+    setRemoved(new Set());
+    setUsedBrackets(new Set());
+    setStatus("playing");
+    setHoverWord(null);
+    setHoverBracket(null);
+    setBracketLog([]);
+  };
+
+  // When a new target arrives (from requestCrack), regenerate a fresh
+  // puzzle at the target's preferred difficulty.
+  useEffect(() => {
+    reset(target.difficulty ?? 2);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target.id]);
+
+  const guessWord = (word: string) => {
+    if (status !== "playing") return;
+    if (removed.has(word)) return;
+    if (guesses.find((g) => g.word === word)) return;
+
+    if (word === puzzle.answer) {
+      setStatus("won");
+      window.dispatchEvent(
+        new CustomEvent(HACKING_CRACKED_EVENT, {
+          detail: {
+            target,
+            word,
+            attemptsUsed: puzzle.attempts - attemptsLeft + 1,
+          },
+        }),
+      );
+      return;
     }
 
-    setProgress(100);
-    setAttempt(finalPassword);
-    setResult(finalPassword);
-    setCracking(false);
+    const sim = similarityIndex(word, puzzle.answer);
+    const next = attemptsLeft - 1;
+    setGuesses((prev) => [...prev, { word, similarity: sim }]);
+    setAttemptsLeft(next);
+    if (next <= 0) {
+      setStatus("lost");
+      window.dispatchEvent(
+        new CustomEvent(HACKING_FAILED_EVENT, { detail: { target } }),
+      );
+    }
+  };
+
+  const activateBracket = (bracketId: string) => {
+    if (status !== "playing") return;
+    if (usedBrackets.has(bracketId)) return;
+    setUsedBrackets((prev) => new Set(prev).add(bracketId));
+
+    // Pick remaining wrong words.
+    const remainingWrong = puzzle.words.filter(
+      (w) =>
+        w !== puzzle.answer &&
+        !removed.has(w) &&
+        !guesses.find((g) => g.word === w),
+    );
+
+    // 70% delete a dud, 30% restore an attempt. Fall back to whichever is
+    // useful if the chosen branch has nothing to do.
+    const tryDelete = Math.random() < 0.7;
+    if (tryDelete && remainingWrong.length > 0) {
+      const w = remainingWrong[Math.floor(Math.random() * remainingWrong.length)];
+      setRemoved((prev) => new Set(prev).add(w));
+      setBracketLog((p) => [...p, `▸ dud removed: ${w}`]);
+    } else {
+      setAttemptsLeft((prev) => Math.min(prev + 1, puzzle.attempts));
+      setBracketLog((p) => [...p, "▸ attempt restored"]);
+    }
+  };
+
+  // Render helpers
+  const isCellInteractive = (cell: Cell): boolean => {
+    if (status !== "playing") return false;
+    if (cell.kind === "word") return !removed.has(cell.word!) && !guesses.find((g) => g.word === cell.word);
+    if (cell.kind === "bracket") return !usedBrackets.has(cell.bracketId!);
+    return false;
+  };
+
+  const cellClass = (cell: Cell): string => {
+    if (cell.kind === "word") {
+      const w = cell.word!;
+      if (removed.has(w) || guesses.find((g) => g.word === w)) {
+        return "text-fg-subtle/40 line-through";
+      }
+      const active = hoverWord === w;
+      return active
+        ? "bg-primary text-bg cursor-pointer"
+        : "text-primary cursor-pointer";
+    }
+    if (cell.kind === "bracket") {
+      const id = cell.bracketId!;
+      if (usedBrackets.has(id)) return "text-fg-subtle/40";
+      const active = hoverBracket === id;
+      return active
+        ? "bg-primary text-bg cursor-pointer"
+        : "text-primary cursor-pointer";
+    }
+    return "text-fg-muted/70";
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="text-fg-muted uppercase tracking-widest text-[10px] w-14">
-          target:
+    <div className="p-4 flex flex-col gap-3">
+      {/* ASCII banner */}
+      <pre
+        aria-label="codebreaker"
+        className="text-primary font-mono leading-[1.05] text-[10px] sm:text-xs select-none whitespace-pre"
+      >
+{`█▀▀ █▀█ █▀▄ █▀▀ █▄▄ █▀█ █▀▀ ▄▀█ █▄▀ █▀▀ █▀█
+█▄▄ █▄█ █▄▀ ██▄ █▄█ █▀▄ ██▄ █▀█ █ █ ██▄ █▀▄`}
+      </pre>
+
+      {/* Header: target + difficulty + attempts */}
+      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest">
+        <span className="text-fg-subtle">target: <span className="text-fg-muted">{target.name}</span></span>
+        <span className="ml-auto flex items-center gap-1">
+          <span className="text-fg-subtle">diff:</span>
+          {[1, 2, 3, 4, 5].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => reset(d)}
+              className={`size-5 border text-[10px] flex items-center justify-center transition ${
+                d === difficulty
+                  ? "border-primary bg-primary text-bg font-bold"
+                  : "border-primary/40 text-primary hover:bg-primary/15"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
         </span>
-        <input
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          spellCheck={false}
-          className="flex-1 px-2 py-1.5 bg-bg border border-primary/40 text-fg focus:outline-none focus:border-primary text-xs font-mono"
-        />
-        <button
-          type="button"
-          onClick={startCrack}
-          disabled={cracking}
-          className="px-3 py-1.5 border border-primary text-primary text-[10px] uppercase tracking-widest hover:bg-primary/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
-        >
-          {cracking ? "cracking…" : "▸ crack"}
-        </button>
       </div>
 
-      <div className="border border-primary/30 bg-bg/40 px-4 py-5 space-y-3 text-center">
-        <div className="text-[10px] uppercase tracking-widest text-fg-subtle">
-          attempting
+      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
+        <span className="text-fg-subtle">attempts:</span>
+        <span className="flex gap-1">
+          {Array.from({ length: puzzle.attempts }).map((_, i) => (
+            <span
+              key={i}
+              className={`block w-3 h-2 ${
+                i < attemptsLeft
+                  ? "bg-primary"
+                  : "bg-primary/15 border border-primary/30"
+              }`}
+            />
+          ))}
+        </span>
+        <span className="text-fg-muted tabular-nums">
+          {attemptsLeft}/{puzzle.attempts}
+        </span>
+      </div>
+
+      {/* Side-by-side: hex grid (left) + activity log (right). */}
+      <div className="flex gap-3 min-h-0">
+        {/* Hex grid */}
+        <div
+          key={puzzle.nonce}
+          className="flex-1 border border-primary/30 bg-bg/40 px-3 py-2 font-mono font-bold text-sm leading-[1.5] select-none overflow-x-auto"
+        >
+          {puzzle.grid.map((row, r) => (
+            <div
+              key={r}
+              className="whitespace-pre codebreaker-row"
+              style={{ animationDelay: `${r * 30}ms` }}
+            >
+              <span className="text-fg-subtle mr-3 font-normal">
+                0x{(BASE_ADDR + r * 4).toString(16).toUpperCase()}
+              </span>
+              {row.map((cell, c) => (
+                <span
+                  key={c}
+                  className={cellClass(cell)}
+                  onMouseEnter={() => {
+                    if (!isCellInteractive(cell)) {
+                      setHoverWord(null);
+                      setHoverBracket(null);
+                      return;
+                    }
+                    if (cell.kind === "word") {
+                      setHoverWord(cell.word!);
+                      setHoverBracket(null);
+                    } else if (cell.kind === "bracket") {
+                      setHoverBracket(cell.bracketId!);
+                      setHoverWord(null);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    setHoverWord(null);
+                    setHoverBracket(null);
+                  }}
+                  onClick={() => {
+                    if (!isCellInteractive(cell)) return;
+                    if (cell.kind === "word") guessWord(cell.word!);
+                    else if (cell.kind === "bracket") activateBracket(cell.bracketId!);
+                  }}
+                >
+                  {cell.char}
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
-        <div className="text-primary text-2xl tracking-[0.4em] font-mono min-h-[2rem]">
-          {attempt || "_ _ _ _ _ _ _ _"}
-        </div>
-        <div className="h-1 bg-primary/10 overflow-hidden">
-          <div
-            className={`h-full transition-[width] duration-75 ${result ? "bg-success" : "bg-primary"}`}
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        <div className="text-[10px] uppercase tracking-widest h-3">
-          {result ? (
-            <span className="text-success">▸ matched: {result}</span>
-          ) : cracking ? (
-            <span className="text-fg-muted">{progress}% · trying combos…</span>
-          ) : (
-            <span className="text-fg-subtle">// idle</span>
+
+        {/* Log + status */}
+        <div className="w-64 shrink-0 border border-primary/30 bg-bg/40 px-3 py-2 font-mono text-xs leading-relaxed overflow-y-auto">
+          <p className="text-[10px] uppercase tracking-widest text-fg-subtle mb-1">
+            // log
+          </p>
+          {status === "won" && (
+            <p className="codebreaker-row text-success">
+              ▸ access granted · {puzzle.answer}
+            </p>
           )}
+          {status === "lost" && (
+            <p className="codebreaker-row text-danger">
+              ▸ lockout · password was {puzzle.answer}
+            </p>
+          )}
+          {status === "playing" &&
+            guesses.length === 0 &&
+            bracketLog.length === 0 && (
+              <p className="codebreaker-row text-fg-subtle">// awaiting input</p>
+            )}
+          {guesses.map((g, i) => (
+            <p key={`g-${i}`} className="codebreaker-row text-fg-muted">
+              ▸ {g.word}
+              <br />
+              <span className="text-fg-subtle">
+                · similarity {g.similarity}/{puzzle.answer.length}
+              </span>
+            </p>
+          ))}
+          {bracketLog.map((line, i) => (
+            <p key={`b-${i}`} className="codebreaker-row text-primary/80">
+              {line}
+            </p>
+          ))}
         </div>
       </div>
+
+      {/* Reset */}
+      {status !== "playing" && (
+        <button
+          type="button"
+          onClick={() => reset()}
+          className="self-start px-3 py-1.5 border border-primary text-primary text-[10px] uppercase tracking-widest hover:bg-primary/15 transition"
+        >
+          ▸ retry
+        </button>
+      )}
     </div>
   );
 }

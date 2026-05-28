@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavAudio } from "../lib/useNavAudio";
 
 type LogEntry = {
   id: string;
@@ -129,95 +130,12 @@ write here.`,
   },
 ];
 
-// ─────────────────────────────────────────────────────────
-// Audio: small synth blips for nav / select / back. Lazy
-// AudioContext — created on first user gesture inside the app.
-// ─────────────────────────────────────────────────────────
-
-type WebkitWindow = typeof window & {
-  webkitAudioContext?: typeof AudioContext;
-};
-
-function useLogsAudio() {
-  const ctxRef = useRef<AudioContext | null>(null);
-
-  const ensureCtx = () => {
-    if (ctxRef.current) return ctxRef.current;
-    const Ctx =
-      window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
-    if (!Ctx) return null;
-    try {
-      ctxRef.current = new Ctx();
-    } catch {
-      return null;
-    }
-    return ctxRef.current;
-  };
-
-  const blip = (freq: number, durMs: number, type: OscillatorType, peak: number) => {
-    const ctx = ensureCtx();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume().catch(() => {});
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const now = ctx.currentTime;
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, now);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(peak, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + durMs / 1000);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + durMs / 1000 + 0.02);
-  };
-
-  return {
-    nav: () => blip(880, 50, "square", 0.04),
-    select: () => {
-      const ctx = ensureCtx();
-      if (!ctx) return;
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(660, now);
-      osc.frequency.linearRampToValueAtTime(1320, now + 0.12);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.07, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.22);
-    },
-    back: () => {
-      const ctx = ensureCtx();
-      if (!ctx) return;
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.linearRampToValueAtTime(440, now + 0.1);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.05, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.16);
-    },
-  };
-}
-
-// ─────────────────────────────────────────────────────────
-
 type View = { kind: "list" } | { kind: "detail"; logId: string };
 
 export default function LogsApp() {
   const [view, setView] = useState<View>({ kind: "list" });
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const audio = useLogsAudio();
+  const audio = useNavAudio();
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 

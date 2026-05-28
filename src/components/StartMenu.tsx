@@ -6,7 +6,9 @@ import { WINDOW_OPEN_EVENT } from "./WindowManager";
 const MENU_APPS: AppId[] = [
   "terminal",
   "files",
+  "explorer",
   "logs",
+  "mail",
   "shipcraft",
   "components",
   "playground",

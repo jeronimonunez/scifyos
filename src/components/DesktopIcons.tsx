@@ -96,6 +96,46 @@ function LockBadgeIcon() {
   );
 }
 
+function ExplorerIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="miter"
+      strokeLinecap="square"
+      className="size-9 text-primary"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" />
+      <line x1="3" y1="8" x2="21" y2="8" />
+      <rect x="6" y="11" width="4" height="4" fill="currentColor" />
+      <rect x="14" y="11" width="4" height="4" />
+      <rect x="6" y="17" width="4" height="2" />
+      <rect x="14" y="17" width="4" height="2" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="miter"
+      strokeLinecap="square"
+      className="size-9 text-primary"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" />
+      <polyline points="3,5 12,13 21,5" />
+    </svg>
+  );
+}
+
 function LogsIcon() {
   return (
     <svg
@@ -157,8 +197,10 @@ function HackingIcon() {
 const ICONS: IconDef[] = [
   { id: "ico-about", appId: "about", label: "About", icon: <InfoIcon /> },
   { id: "ico-files", appId: "files", label: "Files", icon: <FolderIcon /> },
+  { id: "ico-explorer", appId: "explorer", label: "Explorer", icon: <ExplorerIcon /> },
   { id: "ico-terminal", appId: "terminal", label: "Terminal", icon: <TerminalIcon /> },
   { id: "ico-logs", appId: "logs", label: "Logs", icon: <LogsIcon /> },
+  { id: "ico-mail", appId: "mail", label: "Mail", icon: <MailIcon /> },
   { id: "ico-shipcraft", appId: "shipcraft", label: "Shipcraft", icon: <ShipIcon /> },
   { id: "ico-components", appId: "components", label: "Components", icon: <BoxIcon /> },
   { id: "ico-hacking", appId: "hacking", label: "Hacking", icon: <HackingIcon /> },
@@ -172,28 +214,67 @@ const ICON_HEIGHT = 84;
 const GUTTER = 12;
 const ORIGIN_X = 20;
 const ORIGIN_Y = 20;
+/** Space reserved at the bottom for the dock + start-menu button.
+ *  6rem == 96px (matches the maximized-window bottom reserve). */
+const DOCK_RESERVE = 96;
+/** Top-bar height the icons should clear. */
+const TOPBAR_RESERVE = 0; // icons render inside the desktop area which is already below the top bar
 
-function defaultPositions(): Positions {
+/** Lay icons out vertically; wrap into a new column when the current
+ *  one would push an icon under the dock. Falls back to a tall
+ *  single-column layout when no viewport is known (SSR). */
+function defaultPositions(viewport?: { w: number; h: number }): Positions {
+  const usableH = viewport
+    ? Math.max(
+        ICON_HEIGHT + GUTTER,
+        viewport.h - DOCK_RESERVE - TOPBAR_RESERVE - ORIGIN_Y,
+      )
+    : ICONS.length * (ICON_HEIGHT + GUTTER) + ORIGIN_Y;
+  const perCol = Math.max(1, Math.floor(usableH / (ICON_HEIGHT + GUTTER)));
+
   const out: Positions = {};
   ICONS.forEach((icon, i) => {
+    const col = Math.floor(i / perCol);
+    const row = i % perCol;
     out[icon.id] = {
-      x: ORIGIN_X,
-      y: ORIGIN_Y + i * (ICON_HEIGHT + GUTTER),
+      x: ORIGIN_X + col * (ICON_WIDTH + GUTTER),
+      y: ORIGIN_Y + row * (ICON_HEIGHT + GUTTER),
     };
   });
   return out;
 }
 
+function viewportSize(): { w: number; h: number } | undefined {
+  if (typeof window === "undefined") return undefined;
+  return { w: window.innerWidth, h: window.innerHeight };
+}
+
+/** Pull a position back inside the visible desktop area (subtracting the
+ *  dock reserve). Used on resize and on hydration. */
+function clamp(
+  pos: { x: number; y: number },
+  vp: { w: number; h: number },
+): { x: number; y: number } {
+  const maxX = Math.max(0, vp.w - ICON_WIDTH - 8);
+  const maxY = Math.max(0, vp.h - DOCK_RESERVE - ICON_HEIGHT);
+  return {
+    x: Math.max(0, Math.min(maxX, pos.x)),
+    y: Math.max(0, Math.min(maxY, pos.y)),
+  };
+}
+
 function loadPositions(): Positions {
-  if (typeof window === "undefined") return defaultPositions();
+  const vp = viewportSize();
+  const defaults = defaultPositions(vp);
+  if (typeof window === "undefined") return defaults;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultPositions();
+    if (!raw) return defaults;
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return defaultPositions();
-    return { ...defaultPositions(), ...parsed };
+    if (!parsed || typeof parsed !== "object") return defaults;
+    return { ...defaults, ...parsed };
   } catch {
-    return defaultPositions();
+    return defaults;
   }
 }
 
@@ -215,6 +296,27 @@ export default function DesktopIcons() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
     } catch {}
   }, [positions]);
+
+  // On viewport resize, clamp any icon that would otherwise sit under
+  // the dock or off-screen.
+  useEffect(() => {
+    const onResize = () => {
+      const vp = viewportSize();
+      if (!vp) return;
+      setPositions((prev) => {
+        let changed = false;
+        const next: Positions = {};
+        for (const [id, pos] of Object.entries(prev)) {
+          const c = clamp(pos, vp);
+          if (c.x !== pos.x || c.y !== pos.y) changed = true;
+          next[id] = c;
+        }
+        return changed ? next : prev;
+      });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Clicking the empty desktop deselects
   useEffect(() => {
