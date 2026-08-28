@@ -6,6 +6,7 @@ import CursorToggle from "../components/CursorToggle.tsx";
 import CursorReticle from "../components/CursorReticle.tsx";
 import CommandPalette from "../components/CommandPalette.tsx";
 import { BRANDING, pageTitle } from "../lib/branding";
+import Analytics from "@vercel/analytics/astro";
 
 interface Props {
   title?: string;
@@ -38,6 +39,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap"
     />
+    <Analytics />
     <script is:inline>
       (() => {
         const root = document.documentElement;
