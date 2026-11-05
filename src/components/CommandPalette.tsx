@@ -27,6 +27,10 @@ export default function CommandPalette({
   hideTrigger = false,
 }: CommandPaletteProps = {}) {
   const [open, setOpen] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => {
+    setIsMac(/Mac/i.test(navigator.userAgent));
+  }, []);
   const { mounted, closing } = useOpenTransition(open, PALETTE_EXIT_MS);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
@@ -170,8 +174,7 @@ export default function CommandPalette({
     }
   };
 
-  const isMac =
-    typeof navigator !== "undefined" && /Mac/i.test(navigator.userAgent);
+  // Resolved after mount so the first client render matches the SSR HTML.
   const modKey = isMac ? "⌘" : "Ctrl";
 
   return (

@@ -189,48 +189,6 @@ const ROUTES: Record<string, string> = {
   os: "/os",
 };
 
-const FILES: Record<string, string[]> = {
-  "readme.md": [
-    "# scifyos",
-    "",
-    "A design system for things built after midnight.",
-    "",
-    "## stack",
-    "- astro v6 (static + react islands)",
-    "- tailwind v4",
-    "- web audio for tv static",
-    "",
-    "## terminal commands",
-    "type 'help' for the full list.",
-  ],
-  "config.json": [
-    "{",
-    '  "name": "scifyos",',
-    '  "version": "0.1.0",',
-    '  "theme": "dark",',
-    '  "crt": true,',
-    '  "cursor": true,',
-    '  "audio": false,',
-    '  "kernel": "0.1.0-rc1"',
-    "}",
-  ],
-  ".scifyrc": [
-    "# .scifyrc — session config",
-    "shell=/bin/zsh",
-    "history=infinite",
-    "alias ll='ls -lah'",
-    "alias breach='security alert'",
-  ],
-  "tokens.css": [
-    "@theme {",
-    "  --color-primary: oklch(0.87 0.30 142);",
-    "  --color-danger:  oklch(0.65 0.30 25);",
-    "  --color-bg:      oklch(0.06 0 0);",
-    "  --font-mono:     \"JetBrains Mono\";",
-    "}",
-  ],
-};
-
 // ─────────────────────────────────────────────────────────
 // Filesystem helpers — walk + format against the Explorer's
 // FS_ROOT so `ls` / `cd` / `pwd` / `cat` operate on the same

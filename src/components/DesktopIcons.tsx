@@ -271,8 +271,25 @@ function loadPositions(): Positions {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaults;
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return defaults;
-    return { ...defaults, ...parsed };
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return defaults;
+    }
+    const out: Positions = { ...defaults };
+    for (const key of Object.keys(defaults)) {
+      const v = (parsed as Record<string, unknown>)[key] as
+        | { x?: unknown; y?: unknown }
+        | undefined;
+      if (
+        v &&
+        typeof v.x === "number" &&
+        typeof v.y === "number" &&
+        Number.isFinite(v.x) &&
+        Number.isFinite(v.y)
+      ) {
+        out[key] = vp ? clamp({ x: v.x, y: v.y }, vp) : { x: v.x, y: v.y };
+      }
+    }
+    return out;
   } catch {
     return defaults;
   }

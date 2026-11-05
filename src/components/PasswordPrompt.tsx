@@ -59,7 +59,7 @@ export default function PasswordPrompt() {
   const app = appId ? APPS[appId] : null;
   const title = app?.title ?? "Locked";
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!appId) return;
     if (value === SECRET) {
