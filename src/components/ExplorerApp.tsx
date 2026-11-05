@@ -435,7 +435,7 @@ function UnlockOverlay({
     };
   }, [onCancel]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const ok = onSubmit(value);
     if (!ok) {

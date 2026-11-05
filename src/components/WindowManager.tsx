@@ -152,19 +152,20 @@ export default function WindowManager() {
   useEffect(() => {
     const onOpen = (e: Event) => {
       const detail = (e as CustomEvent<OpenWindowDetail | undefined>).detail;
-      if (!detail?.appId) return;
-      const app = APPS[detail.appId];
+      const appId = detail?.appId;
+      if (!appId) return;
+      const app = APPS[appId];
       if (!app) return;
 
       // Gate password-protected apps unless: the window is already open
       // (re-focus from dock/start menu), or the prompt just unlocked it.
       const alreadyOpen = windowsRef.current.some(
-        (w) => w.appId === detail.appId,
+        (w) => w.appId === appId,
       );
       if (app.passwordProtected && !alreadyOpen && !detail.unlocked) {
         window.dispatchEvent(
           new CustomEvent<PasswordPromptDetail>(PASSWORD_PROMPT_EVENT, {
-            detail: { appId: detail.appId },
+            detail: { appId: appId },
           }),
         );
         return;
@@ -173,7 +174,7 @@ export default function WindowManager() {
       setWindows((prev) => {
         topZRef.current += 1;
         const nextZ = topZRef.current;
-        const existing = prev.find((w) => w.appId === detail.appId);
+        const existing = prev.find((w) => w.appId === appId);
         if (existing) {
           // Focus existing AND clear any minimized flag — clicking
           // the dock or start menu on a minimized window restores it.
@@ -183,7 +184,7 @@ export default function WindowManager() {
               : w,
           );
         }
-        const stored = positionsRef.current?.[detail.appId];
+        const stored = positionsRef.current?.[appId];
         const offset = prev.length * 28;
         const x = stored?.x ?? 60 + (offset % 200);
         const y = stored?.y ?? 50 + (offset % 140);
@@ -192,7 +193,7 @@ export default function WindowManager() {
 
         // Seed the cache so the cascading default also gets saved.
         if (positionsRef.current) {
-          positionsRef.current[detail.appId] = { x, y, width, height };
+          positionsRef.current[appId] = { x, y, width, height };
         }
 
         return [
