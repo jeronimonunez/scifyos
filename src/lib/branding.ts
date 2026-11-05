@@ -15,6 +15,11 @@ export const BRANDING = {
   shortName: "scifyos",
   /** One-line tagline shown on the landing page + About app. */
   tagline: "a design system for things built after midnight.",
+  /** Production URL — used for canonical + Open Graph links. */
+  url: "https://scifyos.vercel.app",
+  /** Meta description for search + link previews. */
+  description:
+    "A hacker-themed design system and virtual OS in your browser: boot screen, window manager, terminal, and playable apps. Built with Astro, React and Tailwind.",
   /** Long version label — boot screen, About app. */
   version: "0.1.0-rc1",
   /** Short version label — footer chips. */

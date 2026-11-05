@@ -1,5 +1,7 @@
 # scifyos
 
+![scifyos — a design system for things built after midnight](public/og.png)
+
 A hacker-themed design system and virtual OS template — built with Astro + React + Tailwind v4.
 
 The aesthetic is fluorescent green on black, sharp corners, monospace, CRT vibes. Originally a one-page theme reference, it grew into a full Linux/macOS-style desktop you can drop new "apps" into. It's a template — clone it, swap the lore, ship your own game or portfolio on top.
