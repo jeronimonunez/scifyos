@@ -9,7 +9,7 @@ type BootLine = { text: string; tone?: Tone; pause?: number };
 
 const BOOT_LINES: BootLine[] = [
   { text: `${BRANDING.name} kernel v${BRANDING.version} (${PROMPT})`, tone: "banner", pause: 120 },
-  { text: "Copyright (c) 2026 jeronimo.nunez · all rights reserved", tone: "banner" },
+  { text: "Copyright (c) 2026 Jeronimo Nuñez · MIT license", tone: "banner" },
   { text: "" },
   { text: `[    0.000000] Booting ${BRANDING.name}...`, pause: 90 },
   { text: "[    0.000412] CPU: 8x Synthetic Xeon @ 4.4 GHz" },

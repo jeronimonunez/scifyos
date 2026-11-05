@@ -26,6 +26,8 @@ export const BRANDING = {
   /** Domain suffix for fake networked hosts (used by demo content). */
   domain: "scifyos",
   /** Credit line shown in About. */
+  credits: "jeronimo nuñez · built with claude",
+  /** Stack line shown in About. */
   stack: "astro · react · tailwind",
   /** Service paths used in the boot log. */
   servicesPath: "/scifyos/services",

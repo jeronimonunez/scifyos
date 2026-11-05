@@ -114,6 +114,8 @@ function AboutApp() {
         <dd>47d 12h 03m</dd>
         <dt className="text-fg-subtle">stack</dt>
         <dd>{BRANDING.stack}</dd>
+        <dt className="text-fg-subtle">credits</dt>
+        <dd>{BRANDING.credits}</dd>
         <dt className="text-fg-subtle">memory</dt>
         <dd>2.1 / 8 GB</dd>
       </dl>

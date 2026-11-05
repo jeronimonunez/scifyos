@@ -4,6 +4,8 @@ A hacker-themed design system and virtual OS template — built with Astro + Rea
 
 The aesthetic is fluorescent green on black, sharp corners, monospace, CRT vibes. Originally a one-page theme reference, it grew into a full Linux/macOS-style desktop you can drop new "apps" into. It's a template — clone it, swap the lore, ship your own game or portfolio on top.
 
+**Live demo:** https://scifyos.vercel.app/ — open [/os](https://scifyos.vercel.app/os) for the full desktop.
+
 ## Stack
 
 - **Astro 6** — static site framework
@@ -100,6 +102,10 @@ The window manager handles everything else — open events, focus, minimize, pas
 - **Cross-component messaging** happens via `window.dispatchEvent(new CustomEvent("scifyos:*"))`. See `WINDOW_OPEN_EVENT`, `PASSWORD_PROMPT_EVENT`, `WINDOWS_CHANGED_EVENT` for the canonical examples.
 - **State that survives reloads** lives in `localStorage` under keys prefixed `scifyos-` (window positions, desktop icon positions, terminal history, preferences). The boot animation uses `sessionStorage`.
 - **Modals** portal to `document.body`, use `useOpenTransition` for enter/exit and `useFocusTrap` for Tab containment.
+
+## Credits
+
+Created by [Jeronimo Nuñez](https://github.com/jeronimonunez), built together with [Claude](https://claude.com/claude-code) (Anthropic).
 
 ## License
 
